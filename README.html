@@ -12,7 +12,7 @@
 
 
 <p>This is a library of C headers for manipulating miscellaneous dynamic
-data structures (hmm, should the alarm database be in here now?).</p>
+data structures.</p>
 
 
 <h2 id="lists">Doubly-linked lists</h2>
@@ -318,117 +318,6 @@ maintain it, so a comparison context is needed.</p></li>
 
 </ul>
 
-
-<h2 id="alarm">Synchronous event sequencer</h2>
-
-
-<p><code class=C>&lt;alarm.h&gt;</code> declares types and functions
-that maintain a sequence of timed events (an alarm database).  If
-<code class=C>P</code> is an identifier prefix, and <code
-class=C>T</code> is a type representing time, then:</p>
-
-<pre class=C>
-#include &lt;alarm.h&gt;
-
-alarm_DECL(P,T);
-</pre>
-
-<p>declares:</p>
-
-<ul>
-
-<li><pre class=C>P_db</pre>
-
-<p>This type represents an alarm database.</p></li>
-
-<li><pre class=C>void P_init(P_db *);</pre>
-
-<p>Initialise a database.</p></li>
-
-<li><pre class=C>void P_term(P_db *);</pre>
-
-<p>Discard a database.</p></li>
-
-<li><pre class=C>P_h P_set(P_db *db, const T *when,
-                           alarm_f *fp, void *v);</pre>
-
-<p>Indicate that <code class=C>(*fp)(v)</code> should be called at
-<code class=C>when</code>.  This alarm is registered in the database
-<code class=C>db</code>, and a handle to it is returned.</p></li>
-
-<li><pre class=C>void P_cancel(P_db *db, P_h h)</pre>
-
-<p>Remove the alarm <code class=C>h</code> from the database <code
-class=C>db</code>.  Even alarms that have been fired should be
-cancelled.</p></li>
-
-<li><pre class=C>
-alarm_rc P_poll(P_db *db, const T *now, T *next);
-alarm_rc P_polldelay(P_db *db, const T *now, T *delay);
-</pre>
-
-<p>Given that the current time is <code class=C>*now</code>, compute
-when the next alarm is due (<code class=C>*next</code>) or how long
-before the next alarm (<code class=C>*delay</code>).  The return value
-indicates:</p>
-
-<dl>
-
-<dt><code class=C>alarm_OFF</code></dt>
-
-<dd><p>There are no outstanding alarms.  <code class=C>*next</code>
-and <code class=C>*delay</code> will not have been changed.</p></dd>
-
-<dt><code class=C>alarm_PENDING</code></dt>
-
-<dd><p>An alarm is (over)due.  <code class=C>*next</code> will contain
-the current time <code class=C>*now</code>.  <code
-class=C>*delay</code> will contain zero.</p></dd>
-
-<dt><code class=C>alarm_OK</code></dt>
-
-<dd><p>An alarm is due at <code class=C>*next</code>, or after <code
-class=C>*delay</code>.</p></dd>
-
-</dl></li>
-
-<li><pre class=C>
-int P_process(P_db *db, const T *now);
-int P_processn(P_db *db, const T *now, int n);
-</pre>
-
-<p>Process all/at most <code class=C>n</code> due at or earlier than
-<code class=C>*now</code>.</p></li>
-
-</ul>
-
-
-<p>An implementation is required to match any declaration.  The names
-of three additional macros or functions must be provided, e.g.:</p>
-
-<pre class=C>
-int CMP(const T *, const T *);
-void SUB(T *, const T *, const T *);
-void SZ(T *);
-</pre>
-
-<p><code class=C>CMP(&amp;a, &amp;b) <var>op</var> 0</code> should be
-equivalent to (<var>a</var> <var>op</var> <var>b</var>), where
-<var>op</var> is a relational/equality operator.</p>
-
-<p><code class=C>SUB(&amp;r, &amp;a, &amp;b)</code> should be
-equivalent to <var>r</var>=<var>a</var>-<var>b</var>.</p>
-
-<p><code class=C>SZ(&amp;r)</code> should set <var>r</var> to
-zero.</p>
-
-<p>Now you can define the functions:</p>
-
-<pre class=C>
-#include &lt;alarmsrc.h&gt;
-
-alarm_DEFN(P,T,CMP,SUB,SZ);
-</pre>
 
 
 <h2 id="bheap">Binary heaps</h2>

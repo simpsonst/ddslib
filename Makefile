@@ -17,7 +17,7 @@ PREFIX=$(INSTALL_PATH)
 
 -include ddslib-env.mk
 
-HEADERS=alarm.h alarmsrc.h dllist.h btree.h bheap.h
+HEADERS=dllist.h btree.h bheap.h
 SOURCES=bheap.c
 LIBRARIES=ddslib
 
@@ -55,7 +55,7 @@ clean: tidy
 	-$(RM) *.o
 
 blank: clean
-	-$(RM) testree testalarm testheap
+	-$(RM) testree testheap
 	-$(RM) $(LIBRARIES:%=lib%.a)
 
 testheap: $(testheap_obj)
