@@ -1,0 +1,18 @@
+*
+
+Minor installation bug-fixes.
+
+1.0.3
+
+Binary heap fixed for cases of removal not from top of heap.  Added
+corresponding documentation.
+
+1.0.2
+
+Added binary-heap code.
+
+2003-02-02 1.0.1
+
+Erm, added this file!
+
+Changed RISC OS release into application directory.

@@ -1,0 +1,521 @@
+<html lang="en">
+
+<head>
+
+<title>DDSLib: Dynamic data structures</title>
+
+</head>
+
+<body>
+
+<h1>DDSLib: Dynamic data structures</h1>
+
+
+<p>This is a library of C headers for manipulating miscellaneous dynamic
+data structures (hmm, should the alarm database be in here now?).</p>
+
+
+<h2 id="lists">Doubly-linked lists</h2>
+
+<pre class=C>
+#include &lt;dllist.h&gt;
+</pre>
+
+<p>This header assumes that you want to maintain a list of structures in
+which you've incorporated the necessary &lsquo;previous&rsquo; and
+&lsquo;next&rsquo; pointers.  The list can be <dfn>open</dfn>, i.e. it
+has a start and an end, or <dfn>closed</dfn>, i.e. it loops
+continuously.</p>
+
+<p>As an example, let's assume that we have a structure for each list
+element:</p>
+
+<pre class=C>
+struct mydata {
+  int m1;
+  char m2;
+  /* ... */
+
+  dllist_elem(struct mydata) others;
+};
+</pre>
+
+<p>The member &lsquo;others&rsquo; provides the necessary pointers for
+linking.</p>
+
+
+<h3>Open lists</h3>
+
+<p>An open list of elements has the type <code
+class=C>dllist_hdr(struct mydata)</code>.  A <code
+class=C>typedef</code> for the header type is recommended if you
+intend to pass headers around, otherwise you might be asking the
+compiler to compare identical, anonymous types:</p>
+
+<pre class=C>
+typedef dllist_hdr(struct mydata) mylist_t;
+</pre>
+
+<p>We can declare and initialise an empty, open list with:</p>
+
+<pre class=C>
+mylist_t list = dllist_HDRINIT;
+</pre>
+
+<p>&hellip;or initialise with:</p>
+
+<pre class=C>
+dllist_init(&amp;list);
+</pre>
+
+<p>Now if we have several elements to add:</p>
+
+<pre class=C>
+struct mydata e1, e2, e3, e4;
+</pre>
+
+<p>&hellip;we can add these to the list in various ways:</p>
+
+<pre class=C>
+/* add to end */
+dllist_append(&amp;list, others, &amp;e1);
+
+/* add to start */
+dllist_prepend(&amp;list, others, &amp;e2);
+
+/* add after e2 */
+dllist_insertafter(&amp;list, others, &amp;e2, &amp;e3);
+
+/* add before e3 */
+dllist_insertbefore(&amp;list, others, &amp;e3, &amp;e4);
+</pre>
+
+<p>&hellip;putting the elements in the order <code class=C>e2</code>,
+<code class=C>e4</code>, <code class=C>e3</code>, <code
+class=C>e1</code>.</p>
+
+<p>To traverse a list:</p>
+
+<pre class=C>
+struct mydata *p;
+
+for (p = dllist_first(&amp;list); p; p = dllist_next(others, p)) {
+  /* ... */
+}
+</pre>
+
+<p>Similarly, there are macros <code class=C>dllist_last</code> and
+<code class=C>dllist_prev</code>.</p>
+
+<p><code class=C>dllist_isempty(&amp;list)</code> is non-zero if the
+list is empty.</p>
+
+<p><code class=C>dllist_unlink(&amp;list, others, &amp;e2)</code>
+removes element <code class=C>e2</code> from the list.</p>
+
+<h3>Closed lists</h3>
+
+<p>This form uses a simple header &mdash; just a pointer to any one of
+the elements:</p>
+
+<pre class=C>
+typedef dllist_loophdr(struct mydata) mylooplist_t;
+mylooplist_t loop = dllist_LOOPHDRINIT;
+
+/* or */
+dllist_loopinit(&amp;loop);
+</pre>
+
+<p>To add elements:</p>
+
+<pre class=C>
+/* adding elements in arbitrary order */
+dllist_loopinsert(&amp;loop, others, &amp;e1);
+dllist_loopinsert(&amp;loop, others, &amp;e2);
+
+/* insert e3 after e1 */
+dllist_loopinsertafter(others, &amp;e1, &amp;e3);
+
+/* insert e4 before e1 */
+dllist_loopinsertbefore(others, &amp;e1, &amp;e4);
+</pre>
+
+<p>To traverse this list:</p>
+
+<pre class=C>
+struct mydata *p, *s;
+
+p = s = dllist_loopentry(&amp;loop);
+do {
+  /* ... */
+  p = dllist_next(others, p);
+} while (p != s);
+</pre>
+
+<p>To remove an element:</p>
+
+<pre class=C>
+dllist_loopunlink(&amp;loop, others, &e2);
+</pre>
+
+<p>If the element removed is the current head, you may want to specify
+whether to move it to the next or to the previous element:</p>
+
+<pre class=C>
+dllist_loopunlinkdir(&amp;loop, others, &e2, next);
+/* or */
+dllist_loopunlinkdir(&amp;loop, others, &e2, prev);
+</pre>
+
+<p>To test for an empty list, use <code
+class=C>dllist_loopisempty(&amp;loop)</code>.</p>
+
+<p>To change move the head pointer by one element, use:</p>
+
+<pre class=C>
+dllist_loopinc(&amp;loop, next);
+/* or */
+dllist_loopinc(&amp;loop, prev);
+</pre>
+
+
+
+<h2 id="btree">Binary trees</h2>
+
+<p>[Note: I've made the binary-heap code generic in a much better way
+than I have for binary trees, so I may later implement trees the same
+way.]</p>
+
+<p>Suppose you want to maintain a binary tree of <code class=C>struct
+number</code> objects, whose key fields are of type <code
+class=C>int</code>.  You also want to traverse the tree in any
+direction (left/right child; parent).  A header file is included to
+maintain the necessary information</p>
+
+<p>You need to declare that the structure type exists, then declare
+types and functions to manipulate such structures, and then you can
+complete your structure definition.  The following is suitable for a
+header file:</p>
+
+<pre class=C>
+#include &lt;btree.h&gt;
+
+/* user's structure type */
+struct element;
+
+btree_DECL(number, struct element, int);
+
+struct element {
+  int value;
+  number_elem others;
+};
+</pre>
+
+<p>The first argument of <code class=C>btree_DECL</code> is a prefix:
+all functions and types declared by the macro will have this prefix.
+The second is the element type, and the third is the key type.</p>
+
+<p>You also need to provide an implementation.  Make sure the above
+declarations are in scope, then define a macro of the form <code
+class=C>CMP(void *, int, int)</code> (i.e. the parameters are keys),
+before providing it as part of the implementation:</p>
+
+<pre class=C>
+#define MYCMP(A,B,C) ((B)-(C))
+
+btree_IMPL(number, struct element, int, others, value, MYCMP);
+</pre>
+
+<p>The first three arguments are as before.  The fourth is the name of
+the member of the element type that will hold the pointers necessary
+for maintaining a binary tree (we'll call this the &lsquo;link
+member&rsquo;).  The fifth is the name of the member containing an
+element's key.  The sixth is the comparison macro.</p>
+
+<p>With the above declarations in scope, you can use the following
+functions:</p>
+
+<ul>
+
+<li><pre class=C>
+void number_init(struct element *ep);
+</pre>
+
+<p>Initialise the element.  This is mainly to ensure that the child
+links are null.</p></li>
+
+<li><pre class=C>
+number_elem *number_find(struct element *parent,
+                         struct element **rootp, int key,
+                         number_elem *res,
+                         void *cmpctxt);
+</pre>
+
+<p>Find the position for the given key.  <code class=C>*rootp</code>
+points to the root element on entry (and may be null), and points to
+the found element (or is null if not found) on exit.  <code
+class=C>*parent</code> should be the element containing <code
+class=C>*rootp</code> on entry, or null if the pointer does not belong
+to an element (such as the pointer to the true root of the tree).
+<code class=C>cmpctxt</code> is passed as the first argument to the
+comparator.  <code class=C>*res</code> (or a static object if <code
+class=C>res==0</code>) will hold the necessary connection information
+for <code class=C>number_link()</code> (see below).  <code
+class=C>res</code> (or a pointer to the static object) is
+returned.</p></li>
+
+<li><pre class=C>
+void number_link(struct element *np);
+</pre>
+
+<p>Insert the element into the tree.  It is assumed that a call to
+<code class=C>number_find</code> has been called, the element's key is
+the same as the just sought key, and the link member has been copied
+from <code class=C>*res</code>.  For example:</p>
+
+<pre class=C>
+#include &lt;stddef.h&gt;
+
+struct element *root;
+struct element newelem;
+
+newelem.value = /* ... */;
+number_find(NULL, &amp;root, newelem.value,
+            number_links(&amp;newelem), NULL);
+number_link(&amp;newelem);
+</pre></li>
+
+<li><pre class=C>
+struct element *number_parent(struct element *);
+</pre>
+
+<p>Get the parent of the given element.</p></li>
+
+<li><pre class=C>
+struct element *number_child(struct element *np,
+                             btree_dir_t dir);
+</pre>
+
+<p>Get the left (<code class=C>dir==btree_LEFT</code>) or right (<code
+class=C>dir==btree_RIGHT</code>) child of the given element.</p></li>
+
+<li><pre class=C>
+struct element *number_next(struct element *np,
+                            btree_dir_t dir);
+</pre>
+
+<p>Get the element before (<code class=C>dir==btree_LEFT</code>) or
+after (<code class=C>dir==btree_RIGHT</code>) the given
+element.</p></li>
+
+<li><pre class=C>
+struct element *number_remove(struct element *np,
+                              void *cmpctxt);
+</pre>
+
+<p>Remove the element.  Other parts of the tree may be moved around to
+maintain it, so a comparison context is needed.</p></li>
+
+</ul>
+
+
+<h2 id="alarm">Synchronous event sequencer</h2>
+
+
+<p><code class=C>&lt;alarm.h&gt;</code> declares types and functions
+that maintain a sequence of timed events (an alarm database).  If
+<code class=C>P</code> is an identifier prefix, and <code
+class=C>T</code> is a type representing time, then:</p>
+
+<pre class=C>
+#include &lt;alarm.h&gt;
+
+alarm_DECL(P,T);
+</pre>
+
+<p>declares:</p>
+
+<ul>
+
+<li><pre class=C>P_db</pre>
+
+<p>This type represents an alarm database.</p></li>
+
+<li><pre class=C>void P_init(P_db *);</pre>
+
+<p>Initialise a database.</p></li>
+
+<li><pre class=C>void P_term(P_db *);</pre>
+
+<p>Discard a database.</p></li>
+
+<li><pre class=C>P_h P_set(P_db *db, const T *when,
+                           alarm_f *fp, void *v);</pre>
+
+<p>Indicate that <code class=C>(*fp)(v)</code> should be called at
+<code class=C>when</code>.  This alarm is registered in the database
+<code class=C>db</code>, and a handle to it is returned.</p></li>
+
+<li><pre class=C>void P_cancel(P_db *db, P_h h)</pre>
+
+<p>Remove the alarm <code class=C>h</code> from the database <code
+class=C>db</code>.  Even alarms that have been fired should be
+cancelled.</p></li>
+
+<li><pre class=C>
+alarm_rc P_poll(P_db *db, const T *now, T *next);
+alarm_rc P_polldelay(P_db *db, const T *now, T *delay);
+</pre>
+
+<p>Given that the current time is <code class=C>*now</code>, compute
+when the next alarm is due (<code class=C>*next</code>) or how long
+before the next alarm (<code class=C>*delay</code>).  The return value
+indicates:</p>
+
+<dl>
+
+<dt><code class=C>alarm_OFF</code></dt>
+
+<dd><p>There are no outstanding alarms.  <code class=C>*next</code>
+and <code class=C>*delay</code> will not have been changed.</p></dd>
+
+<dt><code class=C>alarm_PENDING</code></dt>
+
+<dd><p>An alarm is (over)due.  <code class=C>*next</code> will contain
+the current time <code class=C>*now</code>.  <code
+class=C>*delay</code> will contain zero.</p></dd>
+
+<dt><code class=C>alarm_OK</code></dt>
+
+<dd><p>An alarm is due at <code class=C>*next</code>, or after <code
+class=C>*delay</code>.</p></dd>
+
+</dl></li>
+
+<li><pre class=C>
+int P_process(P_db *db, const T *now);
+int P_processn(P_db *db, const T *now, int n);
+</pre>
+
+<p>Process all/at most <code class=C>n</code> due at or earlier than
+<code class=C>*now</code>.</p></li>
+
+</ul>
+
+
+<p>An implementation is required to match any declaration.  The names
+of three additional macros or functions must be provided, e.g.:</p>
+
+<pre class=C>
+int CMP(const T *, const T *);
+void SUB(T *, const T *, const T *);
+void SZ(T *);
+</pre>
+
+<p><code class=C>CMP(&amp;a, &amp;b) <var>op</var> 0</code> should be
+equivalent to (<var>a</var> <var>op</var> <var>b</var>), where
+<var>op</var> is a relational/equality operator.</p>
+
+<p><code class=C>SUB(&amp;r, &amp;a, &amp;b)</code> should be
+equivalent to <var>r</var>=<var>a</var>-<var>b</var>.</p>
+
+<p><code class=C>SZ(&amp;r)</code> should set <var>r</var> to
+zero.</p>
+
+<p>Now you can define the functions:</p>
+
+<pre class=C>
+#include &lt;alarmsrc.h&gt;
+
+alarm_DEFN(P,T,CMP,SUB,SZ);
+</pre>
+
+
+<h2 id="bheap">Binary heaps</h2>
+
+<p>A binary heap maintains a sequence of elements allowing rapid
+insertion and removal at any position in the sequence.  The header
+<code class=C>&lt;bheap.h&gt;</code> defines types, macros and
+functions for maintaining a binary heap of identical structures in a
+user-defined order.</p>
+
+<p>The user is expected to define a type to represent a heap element,
+and ensure that it contains a member of the type <code
+class=C>bheap_elem_t</code>, for example:</p>
+
+<pre class=C>
+#include &lt;bheap.h&gt;
+
+struct myelem {
+  int value;
+  bheap_elem_t others;
+};
+</pre>
+
+<p>The user must also define an ordering for a heap, by providing a
+comparison function and a context:</p>
+
+<pre class=C>
+struct mycontext ctxt;
+int mycmp(void *cp, const void *a, const void *b);
+</pre>
+
+<p><code class=C>mycmp</code> should expect <code class=C>cp</code> to
+point to <code class=C>ctxt</code>, and <code class=C>a</code> and
+<code class=C>b</code> to point to the two elements to be compared,
+returning: a negative integer if the first should appear in the
+sequence before the second; a positive integer if the first should
+appear in the sequence after the second; zero if the ordering of the
+two elements is unimportant.</p>
+
+<p>Now the user can create an object of type <code
+class=C>bheap_t</code> to represent a heap, which must be initialised
+with:</p>
+
+<pre class=C>
+bheap_t myheap;
+
+bheap_init(&amp;myheap, struct myelem, others, &amp;ctxt, &amp;mycmp);
+</pre>
+
+<p>The heap is maintained using the following functions or
+function-like macros:</p>
+
+<dl>
+
+<dt><code class=C>void *bheap_peek(bheap_t *h);</code></dt>
+
+<dd><p>Obtain the element at the start of the sequence <code
+class=C>h</code>, or <code class=C>NULL</code> if there is
+none.</p></dd>
+
+
+<dt><code class=C>void bheap_insert(bheap_t *h, void *p);</code></dt>
+
+<dd><p>Insert an element pointed to by <code class=C>p</code> at the
+correct position within the sequence <code class=C>h</code>.</p></dd>
+
+
+<dt><code class=C>void bheap_remove(bheap_t *h, void *p);</code></dt>
+
+<dd><p>Remove the element pointed to by <code class=C>p</code> from
+the sequence <code class=C>h</code>.</p></dd>
+
+
+<dt><code class=C>void *bheap_pop(bheap_t *h);</code></dt>
+
+<dd><p>Remove the first element from the sequence <code
+class=C>h</code>, and return a pointer to it.</p></dd>
+
+</dl>
+
+<p>You need to link the library <samp>ddslib</samp> with your program
+in order to use thes functions.</p>
+
+<p>Note that no memory allocation is performed &mdash; the user
+provides that himself.</p>
+
+
+</body>
+
+</html>

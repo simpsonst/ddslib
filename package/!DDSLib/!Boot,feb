@@ -1,0 +1,2 @@
+Set DDSLib$Dir <Obey$Dir>
+Set DDSLib$Path <DDSLib$Dir>.
