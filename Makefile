@@ -103,4 +103,4 @@ riscos-archive: install-apps
 	FILENAME="$(ARCHIVE_DIR)/ddslib-riscos-`$(CAT) VERSION`.zip" ; \
 	$(CD) $(PREFIX)/apps ; \
 	$(RM) "$$FILENAME" ; \
-	$(RISCOS_ZIP) -, -r "$$FILENAME" *
+	$(RISCOS_ZIP) -, -r "$$FILENAME" !DDSLib
