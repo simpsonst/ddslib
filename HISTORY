@@ -1,3 +1,9 @@
+2005-11-25 1.1.0
+
+POSIX-reserved names removed.  Compatibility headers introduced.
+
+Headers moved to <ddslib/*.h>.  Compatible headers left in.
+
 2005-09-10 1.0.4
 
 Minor installation bug-fixes.

@@ -18,7 +18,7 @@ data structures.</p>
 <h2 id="lists">Doubly-linked lists</h2>
 
 <pre class=C>
-#include &lt;dllist.h&gt;
+#include &lt;ddslib/dllist.h&gt;
 </pre>
 
 <p>This header assumes that you want to maintain a list of structures in
@@ -53,13 +53,13 @@ intend to pass headers around, otherwise you might be asking the
 compiler to compare identical, anonymous types:</p>
 
 <pre class=C>
-typedef dllist_hdr(struct mydata) mylist_t;
+typedef dllist_hdr(struct mydata) mylist;
 </pre>
 
 <p>We can declare and initialise an empty, open list with:</p>
 
 <pre class=C>
-mylist_t list = dllist_HDRINIT;
+mylist list = dllist_HDRINIT;
 </pre>
 
 <p>&hellip;or initialise with:</p>
@@ -119,8 +119,8 @@ removes element <code class=C>e2</code> from the list.</p>
 the elements:</p>
 
 <pre class=C>
-typedef dllist_loophdr(struct mydata) mylooplist_t;
-mylooplist_t loop = dllist_LOOPHDRINIT;
+typedef dllist_loophdr(struct mydata) mylooplist;
+mylooplist loop = dllist_LOOPHDRINIT;
 
 /* or */
 dllist_loopinit(&amp;loop);
@@ -198,7 +198,7 @@ complete your structure definition.  The following is suitable for a
 header file:</p>
 
 <pre class=C>
-#include &lt;btree.h&gt;
+#include &lt;ddslib/btree.h&gt;
 
 /* user's structure type */
 struct element;
@@ -293,7 +293,7 @@ struct element *number_parent(struct element *);
 
 <li><pre class=C>
 struct element *number_child(struct element *np,
-                             btree_dir_t dir);
+                             btree_dir dir);
 </pre>
 
 <p>Get the left (<code class=C>dir==btree_LEFT</code>) or right (<code
@@ -301,7 +301,7 @@ class=C>dir==btree_RIGHT</code>) child of the given element.</p></li>
 
 <li><pre class=C>
 struct element *number_next(struct element *np,
-                            btree_dir_t dir);
+                            btree_dir dir);
 </pre>
 
 <p>Get the element before (<code class=C>dir==btree_LEFT</code>) or
@@ -330,14 +330,14 @@ user-defined order.</p>
 
 <p>The user is expected to define a type to represent a heap element,
 and ensure that it contains a member of the type <code
-class=C>bheap_elem_t</code>, for example:</p>
+class=C>bheap_elem</code>, for example:</p>
 
 <pre class=C>
-#include &lt;bheap.h&gt;
+#include &lt;ddslib/bheap.h&gt;
 
 struct myelem {
   int value;
-  bheap_elem_t others;
+  bheap_elem others;
 };
 </pre>
 
@@ -358,11 +358,11 @@ appear in the sequence after the second; zero if the ordering of the
 two elements is unimportant.</p>
 
 <p>Now the user can create an object of type <code
-class=C>bheap_t</code> to represent a heap, which must be initialised
+class=C>bheap</code> to represent a heap, which must be initialised
 with:</p>
 
 <pre class=C>
-bheap_t myheap;
+bheap myheap;
 
 bheap_init(&amp;myheap, struct myelem, others, &amp;ctxt, &amp;mycmp);
 </pre>
@@ -372,26 +372,26 @@ function-like macros:</p>
 
 <dl>
 
-<dt><code class=C>void *bheap_peek(bheap_t *h);</code></dt>
+<dt><code class=C>void *bheap_peek(bheap *h);</code></dt>
 
 <dd><p>Obtain the element at the start of the sequence <code
 class=C>h</code>, or <code class=C>NULL</code> if there is
 none.</p></dd>
 
 
-<dt><code class=C>void bheap_insert(bheap_t *h, void *p);</code></dt>
+<dt><code class=C>void bheap_insert(bheap *h, void *p);</code></dt>
 
 <dd><p>Insert an element pointed to by <code class=C>p</code> at the
 correct position within the sequence <code class=C>h</code>.</p></dd>
 
 
-<dt><code class=C>void bheap_remove(bheap_t *h, void *p);</code></dt>
+<dt><code class=C>void bheap_remove(bheap *h, void *p);</code></dt>
 
 <dd><p>Remove the element pointed to by <code class=C>p</code> from
 the sequence <code class=C>h</code>.</p></dd>
 
 
-<dt><code class=C>void *bheap_pop(bheap_t *h);</code></dt>
+<dt><code class=C>void *bheap_pop(bheap *h);</code></dt>
 
 <dd><p>Remove the first element from the sequence <code
 class=C>h</code>, and return a pointer to it.</p></dd>

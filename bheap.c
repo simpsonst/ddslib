@@ -1,6 +1,6 @@
 /*
     DDSLib: Dynamic data structures
-    Copyright (C) 2003  Steven Simpson
+    Copyright (C) 2003,2005  Steven Simpson
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -25,16 +25,16 @@
 
 #include "bheap.h"
 
-#define get_elem(R,O) ((bheap_elem_t *) &(R)->memb[(char *) (O)])
+#define get_elem(R,O) ((bheap_elem *) &(R)->memb[(char *) (O)])
 
 #define fix_holder(R,M,N) \
 if ((M)->child[N]) get_elem((R),(M)->child[N])->holder = &(M)->child[N]
 
-static void swap(bheap_t *r, void *p, void *q)
+static void swap(bheap *r, void *p, void *q)
 {
-  bheap_elem_t *pm = get_elem(r, p);
-  bheap_elem_t *qm = get_elem(r, q);
-  bheap_elem_t tmp = *qm;
+  bheap_elem *pm = get_elem(r, p);
+  bheap_elem *qm = get_elem(r, q);
+  bheap_elem tmp = *qm;
 
   assert(p != q);
 
@@ -53,25 +53,25 @@ static void swap(bheap_t *r, void *p, void *q)
   }
 
   if (pm->child[0]) {
-    bheap_elem_t *cm = get_elem(r, pm->child[0]);
+    bheap_elem *cm = get_elem(r, pm->child[0]);
     cm->holder = &pm->child[0];
     cm->parent = p;
   }
 
   if (pm->child[1]) {
-    bheap_elem_t *cm = get_elem(r, pm->child[1]);
+    bheap_elem *cm = get_elem(r, pm->child[1]);
     cm->holder = &pm->child[1];
     cm->parent = p;
   }
 
   if (qm->child[0]) {
-    bheap_elem_t *cm = get_elem(r, qm->child[0]);
+    bheap_elem *cm = get_elem(r, qm->child[0]);
     cm->holder = &qm->child[0];
     cm->parent = q;
   }
 
   if (qm->child[1]) {
-    bheap_elem_t *cm = get_elem(r, qm->child[1]);
+    bheap_elem *cm = get_elem(r, qm->child[1]);
     cm->holder = &qm->child[1];
     cm->parent = q;
   }
@@ -82,7 +82,7 @@ static void swap(bheap_t *r, void *p, void *q)
     r->last = p;
 }
 
-static int swap_with_parent(bheap_t *r, void *p)
+static int swap_with_parent(bheap *r, void *p)
 {
   void *q = get_elem(r, p)->parent;
   if (!q || (*r->cmp)(r->ctxt, q, p) < 0) return 0;
@@ -90,7 +90,7 @@ static int swap_with_parent(bheap_t *r, void *p)
   return 1;
 }
 
-static int swap_with_child(bheap_t *r, void *p, int n)
+static int swap_with_child(bheap *r, void *p, int n)
 {
   void *q = get_elem(r, p)->child[n];
   if (!q || (*r->cmp)(r->ctxt, q, p) > 0) return 0;
@@ -104,9 +104,9 @@ static int swap_with_child(bheap_t *r, void *p, int n)
   return 1;
 }
 
-static int swap_with_children(bheap_t *r, void *p)
+static int swap_with_children(bheap *r, void *p)
 {
-  bheap_elem_t *pm = get_elem(r, p);
+  bheap_elem *pm = get_elem(r, p);
   void *c = p;
 
   if (pm->child[0] && (*r->cmp)(r->ctxt, pm->child[0], c) <= 0)
@@ -130,7 +130,7 @@ static unsigned fls(unsigned i)
   return r;
 }
 
-static void **find_pos(bheap_t *r, unsigned i, void **parp)
+static void **find_pos(bheap *r, unsigned i, void **parp)
 {
   void **pp = &r->first;
   unsigned f;
@@ -146,13 +146,13 @@ static void **find_pos(bheap_t *r, unsigned i, void **parp)
   return pp;
 }
 
-static void find_last(bheap_t *r)
+static void find_last(bheap *r)
 {
 #if 0
   r->last = *find_pos(r, r->size, NULL);
 #else
   void *n = r->last, *p;
-  bheap_elem_t *nm, *pm;
+  bheap_elem *nm, *pm;
   ptrdiff_t i;
 
   for ( ; ; ) {
@@ -197,11 +197,11 @@ static void find_last(bheap_t *r)
 #endif
 }
 
-void bheap_insert(bheap_t *r, void *p)
+void bheap_insert(bheap *r, void *p)
 {
   void *parent;
   void **pp = find_pos(r, ++r->size, &parent);
-  bheap_elem_t *pm = get_elem(r, p);
+  bheap_elem *pm = get_elem(r, p);
 
   assert(*pp == NULL);
   *pp = p;
@@ -215,7 +215,7 @@ void bheap_insert(bheap_t *r, void *p)
     ;
 }
 
-void bheap_remove(bheap_t *r, void *p)
+void bheap_remove(bheap *r, void *p)
 {
   void *q = r->last;
 
@@ -265,7 +265,7 @@ void bheap_remove(bheap_t *r, void *p)
 #endif
 }
 
-void *bheap_pop(bheap_t *r)
+void *bheap_pop(bheap *r)
 {
   void *p = bheap_peek(r);
   if (p)
@@ -273,9 +273,9 @@ void *bheap_pop(bheap_t *r)
   return p;
 }
 
-static void print_branch(FILE *out, bheap_t *r, void *elem)
+static void print_branch(FILE *out, bheap *r, void *elem)
 {
-  bheap_elem_t *em;
+  bheap_elem *em;
 
   if (!elem) return;
 
@@ -289,7 +289,7 @@ static void print_branch(FILE *out, bheap_t *r, void *elem)
   print_branch(out, r, em->child[1]);
 }
 
-void bheap_debug(bheap_t *r, int flags)
+void bheap_debug(bheap *r, int flags)
 {
   if (flags) {
     fprintf(stderr, "Address: %p\n", (void *) r);

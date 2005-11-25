@@ -6,7 +6,7 @@
 #include "bheap.h"
 
 struct mystr {
-  bheap_elem_t links;
+  bheap_elem links;
   int val;
 };
 
@@ -30,7 +30,7 @@ char *myprint(void *n, const void *v)
 int main()
 {
   int lastval = 0;
-  bheap_t heap;
+  bheap heap;
   int i;
   struct mystr *p;
 

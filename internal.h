@@ -1,6 +1,6 @@
 /*
     DDSLib: Dynamic data structures
-    Copyright (C) 2003,2005  Steven Simpson
+    Copyright (C) 2005  Steven Simpson
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -20,37 +20,13 @@
     Author contact: Email to ss@comp.lancs.ac.uk
 */
 
-#ifndef bheap_INCLUDED
-#define bheap_INCLUDED
+#ifndef ddslib_internal_included
+#define ddslib_internal_included
 
-#include <stddef.h>
-
-typedef struct {
-  void *child[2], *parent;
-  void **holder;
-} bheap_elem;
-
-typedef struct {
-  void *first, *last;
-  void *ctxt;
-  int (*cmp)(void *, const void *, const void *);
-  char *(*print)(void *, const void *);
-  size_t memb, size;
-} bheap;
-
-#define bheap_init(R, T, MEMB, OBJ, CMP) \
-((void) ((R)->first = (R)->last = 0, \
-         (R)->memb = offsetof(T, MEMB), \
-         (R)->ctxt = (OBJ), \
-         (R)->cmp = (CMP)), \
-         (R)->size = 0u, \
-         (R)->print = 0)
-
-void bheap_insert(bheap *, void *);
-void bheap_remove(bheap *, void *);
-void *bheap_pop(bheap *);
-#define bheap_peek(R) ((R)->first)
-
-void bheap_debug(bheap *, int);
+#ifdef __GNUC__
+#define ddslib_deprecated(D) __attribute__ ((deprecated)) D
+#else
+#define ddslib_deprecated(D) D
+#endif
 
 #endif

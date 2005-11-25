@@ -1,6 +1,6 @@
 /*
     DDSLib: Dynamic data structures
-    Copyright (C) 2002  Steven Simpson
+    Copyright (C) 2002,2005  Steven Simpson
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -27,7 +27,7 @@
 extern "C" {
 #endif
 
-typedef enum { btree_LEFT = 0, btree_RIGHT = 1 } btree_dir_t;
+  typedef enum { btree_LEFT = 0, btree_RIGHT = 1 } btree_dir;
 
 #define btree_opp(X) (1-(X))
 
@@ -40,10 +40,10 @@ void P##_init(T *); \
 void P##_link(T *); \
 KT P##_key(T *); \
 P##_elem *P##_links(T *); \
-T *P##_child(T *, btree_dir_t); \
+T *P##_child(T *, btree_dir); \
 T *P##_parent(T *); \
-btree_dir_t P##_dir(T *); \
-T *P##_next(T *np, btree_dir_t dir); \
+btree_dir P##_dir(T *); \
+T *P##_next(T *np, btree_dir dir); \
 P##_elem *P##_find(T *par, T **rootp, KT key, P##_elem *res, void *cmpctxt); \
 T *P##_remove(T *np, void *cmpctxt); \
 void P##_check(T *root);
@@ -52,7 +52,7 @@ void P##_check(T *root);
 #define btree_parent(M, OP) ((OP)->M.parent)
 
 #define btree_dir(M, OP) \
-((btree_dir_t) (((OP)->M.holder - (OP)->M.parent->M.child)))
+((btree_dir) (((OP)->M.holder - (OP)->M.parent->M.child)))
 
 #define btree_init(M, OP) \
 ((void) ((OP)->M.child[0] = (OP)->M.child[1] = (OP)->M.parent = 0, \
@@ -93,12 +93,12 @@ KT P##_key(T *np) \
   return np->K; \
 } \
  \
-btree_dir_t P##_dir(T *np) \
+btree_dir P##_dir(T *np) \
 { \
   return btree_dir(M, np); \
 } \
  \
-T *P##_child(T *np, btree_dir_t d) \
+T *P##_child(T *np, btree_dir d) \
 { \
   return btree_child(M, np, d); \
 } \
@@ -127,7 +127,7 @@ P##_elem *P##_find(T *parent, T **rootp, \
   res->parent = parent; \
  \
   while (*rootp && (c = CMP(cmpctxt, key, (*rootp)->K)) != 0) { \
-    btree_dir_t dir = c < 0 ? btree_LEFT : btree_RIGHT; \
+    btree_dir dir = c < 0 ? btree_LEFT : btree_RIGHT; \
     res->parent = *rootp; \
     rootp = &(*rootp)->M.child[dir]; \
   } \
@@ -167,7 +167,7 @@ T *P##_remove(T *np, void *cmpctxt) \
   return np; \
 } \
  \
-static T *P##_extchild(T *np, btree_dir_t dir) \
+static T *P##_extchild(T *np, btree_dir dir) \
 { \
   while (np->M.child[dir]) \
     np = np->M.child[dir]; \
@@ -175,14 +175,14 @@ static T *P##_extchild(T *np, btree_dir_t dir) \
   return np; \
 } \
  \
-static T *P##_extparent(T *np, btree_dir_t dir) \
+static T *P##_extparent(T *np, btree_dir dir) \
 { \
   while (np && btree_dir(M, np) != dir) \
     np = np->M.parent; \
   return np->M.parent; \
 } \
  \
-T *P##_next(T *np, btree_dir_t dir) \
+T *P##_next(T *np, btree_dir dir) \
 { \
   if (np->M.child[dir]) \
     return P##_extchild(np->M.child[dir], btree_opp(dir)); \

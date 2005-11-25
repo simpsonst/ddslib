@@ -32,11 +32,15 @@ install:: install-headers install-libraries
 $(PREFIX)/include:
 	$(INSTALL) -d $(PREFIX)/include
 
+$(PREFIX)/include/ddslib:
+	$(INSTALL) -d $(PREFIX)/include/ddslib
+
 $(PREFIX)/lib:
 	$(INSTALL) -d $(PREFIX)/lib
 
-install-headers: $(PREFIX)/include $(HEADERS)
-	$(INSTALL) -m 0644 $(HEADERS) $(PREFIX)/include
+install-headers: $(PREFIX)/include $(PREFIX)/include/ddslib $(HEADERS)
+	$(INSTALL) -m 0644 $(HEADERS) internal.h $(PREFIX)/include/ddslib
+	$(INSTALL) -m 0644 $(HEADERS:%=compat/%) $(PREFIX)/include
 
 install-libraries: $(PREFIX)/lib $(LIBRARIES:%=lib%.a)
 	$(INSTALL) -m 0644 $(LIBRARIES:%=lib%.a) $(PREFIX)/lib
