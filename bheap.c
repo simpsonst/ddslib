@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "bheap.h"
+#include "ddslib/bheap.h"
 
 #define get_elem(R,O) ((bheap_elem *) &(R)->memb[(char *) (O)])
 

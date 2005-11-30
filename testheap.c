@@ -3,7 +3,7 @@
 #include <time.h>
 #include <assert.h>
 
-#include "bheap.h"
+#include "ddslib/bheap.h"
 
 struct mystr {
   bheap_elem links;
