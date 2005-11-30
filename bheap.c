@@ -90,6 +90,7 @@ static int swap_with_parent(bheap *r, void *p)
   return 1;
 }
 
+#if 0
 static int swap_with_child(bheap *r, void *p, int n)
 {
   void *q = get_elem(r, p)->child[n];
@@ -103,6 +104,7 @@ static int swap_with_child(bheap *r, void *p, int n)
   swap(r, p, q);
   return 1;
 }
+#endif
 
 static int swap_with_children(bheap *r, void *p)
 {
@@ -121,7 +123,6 @@ static int swap_with_children(bheap *r, void *p)
 
 static unsigned fls(unsigned i)
 {
-  unsigned x = i;
   unsigned r = 0;
   while (i) {
     r++;

@@ -44,7 +44,8 @@ $(PREFIX)/include/ddslib:
 $(PREFIX)/lib:
 	$(INSTALL) -d $(PREFIX)/lib
 
-install-headers: $(PREFIX)/include $(PREFIX)/include/ddslib $(HEADERS)
+install-headers: $(PREFIX)/include $(PREFIX)/include/ddslib \
+		$(HEADERS:%=ddslib/%)
 	$(INSTALL) -m 0644 $(HEADERS:%=ddslib/%) $(PREFIX)/include/ddslib
 	$(INSTALL) -m 0644 $(COMPAT_HEADERS) $(PREFIX)/include
 
