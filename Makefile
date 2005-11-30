@@ -45,8 +45,8 @@ $(PREFIX)/lib:
 	$(INSTALL) -d $(PREFIX)/lib
 
 install-headers: $(PREFIX)/include $(PREFIX)/include/ddslib $(HEADERS)
-	$(INSTALL) -m 0644 $(HEADERS) $(PREFIX)/include/ddslib
-	$(INSTALL) -m 0644 $(COMPAT_HEADERS:%=compat/%) $(PREFIX)/include
+	$(INSTALL) -m 0644 $(HEADERS:%=ddslib/%) $(PREFIX)/include/ddslib
+	$(INSTALL) -m 0644 $(COMPAT_HEADERS) $(PREFIX)/include
 
 install-libraries: $(PREFIX)/lib $(LIBRARIES:%=lib%.a)
 	$(INSTALL) -m 0644 $(LIBRARIES:%=lib%.a) $(PREFIX)/lib
@@ -71,9 +71,9 @@ blank: clean
 testheap: $(testheap_obj)
 	$(LINK.c) -o $@ $(testheap_obj) $(testheap_lib)
 
-testheap.o: bheap.h
-testree.o: btree.h
-bheap.o: bheap.h
+testheap.o: ddslib/bheap.h
+testree.o: ddslib/btree.h
+bheap.o: ddslib/bheap.h
 
 install-apps:: \
 	$(PREFIX)/apps/!DDSLib/!Boot,feb \
