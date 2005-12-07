@@ -76,6 +76,9 @@ testheap.o: ddslib/bheap.h
 testree.o: ddslib/btree.h
 bheap.o: ddslib/bheap.h
 
+HEADERS_C=$(filter %.h,$(HEADERS))
+HEADERS_CXX=$(filter %.hh,$(HEADERS))
+
 install-apps:: \
 	$(PREFIX)/apps/!DDSLib/!Boot,feb \
 	$(PREFIX)/apps/!DDSLib/README,faf \
@@ -83,8 +86,8 @@ install-apps:: \
 	$(PREFIX)/apps/!DDSLib/VERSION,fff \
 	$(PREFIX)/apps/!DDSLib/HISTORY,fff \
 	$(COMPAT_HEADERS:%.h=$(PREFIX)/apps/!DDSLib/Library/h/%,fff) \
-	$(HEADERS:%.h=$(PREFIX)/apps/!DDSLib/Library/ddslib/h/%,fff) \
-	$(HEADERS:%.hh=$(PREFIX)/apps/!DDSLib/Library/ddslib/hh/%,fff) \
+	$(HEADERS_C:%.h=$(PREFIX)/apps/!DDSLib/Library/ddslib/h/%,fff) \
+	$(HEADERS_CXX:%.hh=$(PREFIX)/apps/!DDSLib/Library/ddslib/hh/%,fff) \
 	$(SOURCES:%.c=$(PREFIX)/apps/!DDSLib/Source/c/%,fff) \
 	$(LIBRARIES:%=$(PREFIX)/apps/!DDSLib/Library/o/%,ffd)
 
