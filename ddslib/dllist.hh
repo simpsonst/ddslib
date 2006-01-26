@@ -1,6 +1,6 @@
 /*
     DDSLib: Dynamic data structures
-    Copyright (C) 2005  Steven Simpson
+    Copyright (C) 2005-6  Steven Simpson
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -30,7 +30,7 @@ namespace ddslib {
 
     template <class T>
     class element {
-      friend header;
+      friend class header<T>;
       T *pr, *ne;
 
     public:
@@ -49,7 +49,7 @@ namespace ddslib {
       header() : f(0), l(0) {}
 
     private:
-      T *link(element T::*m, T *p, T *n, T *e) {
+      T *link(element<T> T::*m, T *p, T *n, T *e) {
 	(e->*m).pr = p;
 	(e->*m).ne = n;
 	if ((e->*m).pr)
@@ -64,15 +64,15 @@ namespace ddslib {
       }
 
     public:
-      T *insert_after(element T::*m, T *p, T *e)
+      T *insert_after(element<T> T::*m, T *p, T *e)
       { return link(m, p, p ? (p->*m).ne : f, e); }
-      T *insert_before(element T::*m, T *n, T *e)
+      T *insert_before(element<T> T::*m, T *n, T *e)
       { return link(m, n ? (n->*m).pr : l, n, e); }
-      T *append(element T::*m, T *e)
+      T *append(element<T> T::*m, T *e)
       { return insert_after(m, l, e); }
-      T *prepend(element T::*m, T *e)
+      T *prepend(element<T> T::*m, T *e)
       { return insert_before(m, f, e); }
-      T *unlink(element T::*m, T *e) {
+      T *unlink(element<T> T::*m, T *e) {
 	if ((e->*m).pr)
 	  ((e->*m).pr->*m).ne = (e->*m).ne;
 	else
