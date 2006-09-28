@@ -1,6 +1,10 @@
+Multitype C hash table added.
+
+
 2006-01-26 1.1.1
 
 Oops - C++ list header (dllist.hh) was not completely fixed.
+
 
 2005-11-25 1.1.0
 
@@ -8,20 +12,24 @@ POSIX-reserved names removed.  Compatibility headers introduced.
 
 Headers moved to <ddslib/*.h>.  Compatible headers left in.
 
+
 2005-09-10 1.0.4
 
 Minor installation bug-fixes.
 
 Alarm stuff removed to Yacitros - not appropriate here.
 
+
 1.0.3
 
 Binary heap fixed for cases of removal not from top of heap.  Added
 corresponding documentation.
 
+
 1.0.2
 
 Added binary-heap code.
+
 
 2003-02-02 1.0.1
 

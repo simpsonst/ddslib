@@ -18,7 +18,7 @@ PREFIX=$(INSTALL_PATH)
 
 -include ddslib-env.mk
 
-HEADERS=dllist.h btree.h bheap.h internal.h
+HEADERS=dllist.h btree.h bheap.h internal.h htab.h
 COMPAT_HEADERS=dllist.h btree.h bheap.h
 SOURCES=bheap.c
 LIBRARIES=ddslib
@@ -27,7 +27,7 @@ ifeq ($(ENABLE_CXX),yes)
 HEADERS += dllist.hh
 endif
 
-ddslib_mod=bheap.o
+ddslib_mod=bheap.o htab.o
 
 testheap_obj=testheap.o libddslib.a
 
@@ -75,6 +75,7 @@ testheap: $(testheap_obj)
 testheap.o: ddslib/bheap.h
 testree.o: ddslib/btree.h
 bheap.o: ddslib/bheap.h
+htab.o: ddslib/htab.h
 
 HEADERS_C=$(filter %.h,$(HEADERS))
 HEADERS_CXX=$(filter %.hh,$(HEADERS))
