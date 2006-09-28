@@ -97,17 +97,35 @@ void htab_close(htab self)
   free(self);
 }
 
-int htab_strcmp(void *ctxt, htab_const a, htab_const b)
+size_t htab_hash_str(void *ctxt, htab_const key)
+{
+  size_t r = 0;
+  const char *s = key.pointer;
+  while (*s)
+    r += *s;
+  return r;
+}
+
+size_t htab_hash_wcs(void *ctxt, htab_const key)
+{
+  size_t r = 0;
+  const wchar_t *s = key.pointer;
+  while (*s)
+    r += *s;
+  return r;
+}
+
+int htab_cmp_str(void *ctxt, htab_const a, htab_obj b)
 {
   return strcmp(a.pointer, b.pointer);
 }
 
-int htab_wcscmp(void *ctxt, htab_const a, htab_const b)
+int htab_cmp_wcs(void *ctxt, htab_const a, htab_obj b)
 {
   return wcscmp(a.pointer, b.pointer);
 }
 
-htab_obj htab_strdup(void *ctxt, htab_const in)
+htab_obj htab_copy_str(void *ctxt, htab_const in)
 {
   htab_obj out;
   size_t len = strlen(in.pointer);
@@ -117,7 +135,7 @@ htab_obj htab_strdup(void *ctxt, htab_const in)
   return out;
 }
 
-htab_obj htab_wcsdup(void *ctxt, htab_const in)
+htab_obj htab_copy_wcs(void *ctxt, htab_const in)
 {
   htab_obj out;
   size_t len = wcslen(in.pointer);
@@ -127,14 +145,9 @@ htab_obj htab_wcsdup(void *ctxt, htab_const in)
   return out;
 }
 
-void htab_free_key(void *ctxt, htab_obj key)
+void htab_release_free(void *ctxt, htab_obj key)
 {
   free(key.pointer);
-}
-
-void htab_free_value(void *ctxt, htab_obj val)
-{
-  free(val.pointer);
 }
 
 static inline struct entry **find_ptr(htab self, htab_const key)
@@ -168,7 +181,7 @@ _Bool htab_pop(htab self, htab_const key, htab_obj *old)
   return true;
 }
 
-_Bool htab_put(htab self, htab_const key, htab_obj *old, htab_obj val)
+_Bool htab_replace(htab self, htab_const key, htab_obj *old, htab_obj val)
 {
   struct entry **pos = find_ptr(self, key);
   _Bool r = *pos;
@@ -193,6 +206,15 @@ _Bool htab_put(htab self, htab_const key, htab_obj *old, htab_obj val)
   return r;
 }
 
+_Bool htab_put(htab self, htab_const key, htab_obj val)
+{
+  htab_obj oldval;
+  _Bool r = htab_replace(self, key, &oldval, val);
+  if (r && self->release_value)
+    (*self->release_value)(self->ctxt, oldval);
+  return r;
+}
+
 _Bool htab_del(htab self, htab_const key)
 {
   htab_obj val;
@@ -205,3 +227,4 @@ _Bool htab_del(htab self, htab_const key)
 htab_PROTO(sp, const char *, void *, extern);
 htab_PROTO(ss, const char *, char *, extern);
 htab_PROTO(wp, const wchar_t *, void *, extern);
+htab_PROTO(pp, const void *, void *, extern);

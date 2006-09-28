@@ -56,7 +56,8 @@ extern "C" {
 
   _Bool htab_get(htab, htab_const, htab_obj *);
   _Bool htab_pop(htab, htab_const, htab_obj *);
-  _Bool htab_put(htab, htab_const, htab_obj *, htab_obj val);
+  _Bool htab_replace(htab, htab_const, htab_obj *, htab_obj val);
+  _Bool htab_put(htab, htab_const, htab_obj val);
   _Bool htab_del(htab, htab_const);
 
 #define htab_IMPL(SUFFIX, KEY_TYPE, VALUE_TYPE, \
@@ -75,10 +76,17 @@ STORAGE, KEY_MEMBER, VALUE_MEMBER, NULL_VALUE) \
     return NULL_VALUE; \
   } \
  \
-  STORAGE VALUE_TYPE htab_put##SUFFIX(htab self, \
-                                      KEY_TYPE key, VALUE_TYPE val) { \
+  STORAGE _Bool htab_put##SUFFIX(htab self, \
+                                 KEY_TYPE key, VALUE_TYPE val) { \
+    return htab_put(self, \
+                    (htab_const) { .KEY_MEMBER = key }, \
+                    (htab_obj) { .VALUE_MEMBER = val }); \
+  } \
+ \
+  STORAGE VALUE_TYPE htab_replace##SUFFIX(htab self, \
+                                          KEY_TYPE key, VALUE_TYPE val) { \
     htab_obj oldval; \
-    if (htab_put(self, (htab_const) { .KEY_MEMBER = key }, &oldval, \
+    if (htab_replace(self, (htab_const) { .KEY_MEMBER = key }, &oldval, \
         (htab_obj) { .VALUE_MEMBER = val })) \
       return oldval.VALUE_MEMBER; \
     return NULL_VALUE; \
@@ -91,20 +99,24 @@ STORAGE, KEY_MEMBER, VALUE_MEMBER, NULL_VALUE) \
 #define htab_PROTO(SUFFIX, KEY_TYPE, VALUE_TYPE, STORAGE) \
   STORAGE VALUE_TYPE htab_get##SUFFIX(htab self, KEY_TYPE key); \
   STORAGE VALUE_TYPE htab_pop##SUFFIX(htab self, KEY_TYPE key); \
-  STORAGE VALUE_TYPE htab_put##SUFFIX(htab self, \
-                                      KEY_TYPE key, VALUE_TYPE val); \
+  STORAGE _Bool htab_put##SUFFIX(htab self, \
+                                 KEY_TYPE key, VALUE_TYPE val); \
+  STORAGE VALUE_TYPE htab_replace##SUFFIX(htab self, \
+                                          KEY_TYPE key, VALUE_TYPE val); \
   STORAGE _Bool htab_del##SUFFIX(htab self, KEY_TYPE key)
 
   htab_IMPL(sp, const char *, void *, inline, pointer, pointer, NULL);
   htab_IMPL(ss, const char *, char *, inline, pointer, pointer, NULL);
   htab_IMPL(wp, const wchar_t *, void *, inline, pointer, pointer, NULL);
+  htab_IMPL(pp, const void *, void *, inline, pointer, pointer, NULL);
 
-  int htab_strcmp(void *, htab_const, htab_const);
-  int htab_wcscmp(void *, htab_const, htab_const);
-  htab_obj htab_strdup(void *ctxt, htab_const);
-  htab_obj htab_wcsdup(void *ctxt, htab_const);
-  void htab_free_key(void *, htab_obj key);
-  void htab_free_value(void *, htab_obj val);
+  size_t htab_hash_str(void *, htab_const);
+  size_t htab_hash_wcs(void *, htab_const);
+  int htab_cmp_str(void *, htab_const, htab_obj);
+  int htab_cmp_wcs(void *, htab_const, htab_obj);
+  htab_obj htab_copy_str(void *ctxt, htab_const);
+  htab_obj htab_copy_wcs(void *ctxt, htab_const);
+  void htab_release_free(void *, htab_obj key);
 
 #ifdef __cplusplus
 }
