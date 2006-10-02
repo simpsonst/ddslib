@@ -1,5 +1,8 @@
 Multitype C hash table added.
 
+Added code for manipulating dynamic wide and multibyte strings with
+base, length and capacity.
+
 
 2006-01-26 1.1.1
 
