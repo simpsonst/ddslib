@@ -30,6 +30,8 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
+#include "internal.h"
+
   typedef union {
     const void *pointer;
     intmax_t integer;
@@ -50,6 +52,7 @@ extern "C" {
 		 size_t (*hash)(void *, htab_const),
 		 int (*cmp)(void *, htab_const, htab_obj),
 		 htab_obj (*copy_key)(void *ctxt, htab_const),
+		 htab_obj (*copy_value)(void *ctxt, htab_const),
 		 void (*release_key)(void *ctxt, htab_obj),
 		 void (*release_value)(void *ctxt, htab_obj val));
   void htab_close(htab);
@@ -60,8 +63,26 @@ extern "C" {
   _Bool htab_put(htab, htab_const, htab_obj val);
   _Bool htab_del(htab, htab_const);
 
-#define htab_IMPL(SUFFIX, KEY_TYPE, VALUE_TYPE, \
-STORAGE, KEY_MEMBER, VALUE_MEMBER, NULL_VALUE) \
+#ifdef ddslib_INLINE
+#define htab_DECL(SUFFIX, KEY_TYPE, VALUE_TYPE, \
+                  KEY_MEMBER, VALUE_MEMBER, NULL_VALUE) \
+		  htab_IMPL(SUFFIX, KEY_TYPE, VALUE_TYPE, inline, \
+			    KEY_MEMBER, VALUE_MEMBER, NULL_VALUE)
+#define htab_DEFN(SUFFIX, KEY_TYPE, VALUE_TYPE, \
+                  KEY_MEMBER, VALUE_MEMBER, NULL_VALUE) \
+		  htab_PROTO(SUFFIX, KEY_TYPE, VALUE_TYPE, extern)
+#else
+#define htab_DECL(SUFFIX, KEY_TYPE, VALUE_TYPE, \
+                  KEY_MEMBER, VALUE_MEMBER, NULL_VALUE) \
+		  htab_PROTO(SUFFIX, KEY_TYPE, VALUE_TYPE,)
+#define htab_DEFN(SUFFIX, KEY_TYPE, VALUE_TYPE, \
+                  KEY_MEMBER, VALUE_MEMBER, NULL_VALUE) \
+		  htab_IMPL(SUFFIX, KEY_TYPE, VALUE_TYPE,, \
+			    KEY_MEMBER, VALUE_MEMBER, NULL_VALUE)
+#endif
+
+#define htab_IMPL(SUFFIX, KEY_TYPE, VALUE_TYPE, STORAGE, \
+                  KEY_MEMBER, VALUE_MEMBER, NULL_VALUE) \
   STORAGE VALUE_TYPE htab_get##SUFFIX(htab self, KEY_TYPE key) { \
     htab_obj val; \
     if (htab_get(self, (htab_const) { .KEY_MEMBER = key }, &val)) \
@@ -105,10 +126,10 @@ STORAGE, KEY_MEMBER, VALUE_MEMBER, NULL_VALUE) \
                                           KEY_TYPE key, VALUE_TYPE val); \
   STORAGE _Bool htab_del##SUFFIX(htab self, KEY_TYPE key)
 
-  htab_IMPL(sp, const char *, void *, inline, pointer, pointer, NULL);
-  htab_IMPL(ss, const char *, char *, inline, pointer, pointer, NULL);
-  htab_IMPL(wp, const wchar_t *, void *, inline, pointer, pointer, NULL);
-  htab_IMPL(pp, const void *, void *, inline, pointer, pointer, NULL);
+  htab_DECL(sp, const char *, void *, pointer, pointer, NULL);
+  htab_DECL(ss, const char *, char *, pointer, pointer, NULL);
+  htab_DECL(wp, const wchar_t *, void *, pointer, pointer, NULL);
+  htab_DECL(pp, const void *, void *, pointer, pointer, NULL);
 
   size_t htab_hash_str(void *, htab_const);
   size_t htab_hash_wcs(void *, htab_const);

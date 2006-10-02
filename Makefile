@@ -76,9 +76,11 @@ testheap: $(testheap_obj)
 testhash: $(testhash_obj)
 	$(LINK.c) -o $@ $(testhash_obj) $(testhash_lib)
 
+bheap.o: ddslib/bheap.h
+htab.o: ddslib/htab.h ddslib/internal.h
+testhash.o: ddslib/htab.h ddslib/internal.h
+testheap.o: ddslib/bheap.h
 testree.o: ddslib/btree.h
-testheap.o bheap.o: ddslib/bheap.h
-testhash.o htab.o: ddslib/htab.h
 vstr.o: ddslib/vstr.h
 vwcs.o: ddslib/vwcs.h
 

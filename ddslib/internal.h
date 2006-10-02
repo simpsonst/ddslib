@@ -1,6 +1,6 @@
 /*
     DDSLib: Dynamic data structures
-    Copyright (C) 2005  Steven Simpson
+    Copyright (C) 2005-6  Steven Simpson
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -27,6 +27,13 @@
 #define ddslib_deprecated(D) __attribute__ ((deprecated)) D
 #else
 #define ddslib_deprecated(D) D
+#endif
+
+#if __STDC_VERSION__ >= 199901L
+#if !defined __GNUC__ || __GNUC__ >= 4 || \
+(__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
+#define ddslib_INLINE 1
+#endif
 #endif
 
 #endif

@@ -37,6 +37,7 @@ struct htab_str {
   size_t (*hash)(void *, htab_const);
   int (*cmp)(void *, htab_const, htab_obj);
   htab_obj (*copy_key)(void *ctxt, htab_const);
+  htab_obj (*copy_value)(void *ctxt, htab_const);
   void (*release_key)(void *ctxt, htab_obj);
   void (*release_value)(void *ctxt, htab_obj val);
 };
@@ -51,6 +52,7 @@ htab htab_open(size_t n, void *ctxt,
 	       unsigned (*hash)(void *, htab_const),
 	       int (*cmp)(void *, htab_const, htab_obj),
 	       htab_obj (*copy_key)(void *ctxt, htab_const),
+	       htab_obj (*copy_value)(void *ctxt, htab_const),
 	       void (*release_key)(void *ctxt, htab_obj),
 	       void (*release_value)(void *ctxt, htab_obj val))
 {
@@ -70,6 +72,7 @@ htab htab_open(size_t n, void *ctxt,
   self->hash = hash;
   self->cmp = cmp;
   self->copy_key = copy_key;
+  self->copy_value = copy_value;
   self->release_key = release_key;
   self->release_value = release_value;
   for (i = 0; i < n; i++)
@@ -102,7 +105,7 @@ size_t htab_hash_str(void *ctxt, htab_const key)
   size_t r = 0;
   const char *s = key.pointer;
   while (*s)
-    r += *s;
+    r += *s++;
   return r;
 }
 
@@ -111,7 +114,7 @@ size_t htab_hash_wcs(void *ctxt, htab_const key)
   size_t r = 0;
   const wchar_t *s = key.pointer;
   while (*s)
-    r += *s;
+    r += *s++;
   return r;
 }
 
@@ -191,7 +194,7 @@ _Bool htab_replace(htab self, htab_const key, htab_obj *old, htab_obj val)
     else if (self->release_value)
       (*self->release_value)(self->ctxt, (*pos)->value);
   } else {
-    *pos = malloc(sizeof(**pos));
+    *pos = malloc(sizeof **pos);
     if (!*pos)
       return false;
     (*pos)->next = NULL;
@@ -202,7 +205,10 @@ _Bool htab_replace(htab self, htab_const key, htab_obj *old, htab_obj val)
       memcpy(&(*pos)->key, &key, sizeof key);
     }
   }
-  (*pos)->value = val;
+  if (self->copy_value)
+    (*pos)->value = (*self->copy_value)(self->ctxt, *(htab_const *) &val);
+  else
+    (*pos)->value = val;
   return r;
 }
 
@@ -224,7 +230,7 @@ _Bool htab_del(htab self, htab_const key)
   return r;
 }
 
-htab_PROTO(sp, const char *, void *, extern);
-htab_PROTO(ss, const char *, char *, extern);
-htab_PROTO(wp, const wchar_t *, void *, extern);
-htab_PROTO(pp, const void *, void *, extern);
+htab_DEFN(sp, const char *, void *, pointer, pointer, NULL);
+htab_DEFN(ss, const char *, char *, pointer, pointer, NULL);
+htab_DEFN(wp, const wchar_t *, void *, pointer, pointer, NULL);
+htab_DEFN(pp, const void *, void *, pointer, pointer, NULL);
