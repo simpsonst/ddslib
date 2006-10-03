@@ -29,11 +29,4 @@
 #define ddslib_deprecated(D) D
 #endif
 
-#if __STDC_VERSION__ >= 199901L
-#if !defined __GNUC__ || __GNUC__ >= 4 || \
-(__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
-#define ddslib_INLINE 1
-#endif
-#endif
-
 #endif

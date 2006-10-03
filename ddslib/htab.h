@@ -30,8 +30,6 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
-#include "internal.h"
-
   typedef union {
     const void *pointer;
     intmax_t integer;
@@ -63,15 +61,9 @@ extern "C" {
   _Bool htab_put(htab, htab_const, htab_obj val);
   _Bool htab_del(htab, htab_const);
 
-#ifdef ddslib_INLINE
-#define htab_DECL(SUFFIX, KEY_TYPE, VALUE_TYPE, \
-                  KEY_MEMBER, VALUE_MEMBER, NULL_VALUE) \
-		  htab_IMPL(SUFFIX, KEY_TYPE, VALUE_TYPE, inline, \
-			    KEY_MEMBER, VALUE_MEMBER, NULL_VALUE)
-#define htab_DEFN(SUFFIX, KEY_TYPE, VALUE_TYPE, \
-                  KEY_MEMBER, VALUE_MEMBER, NULL_VALUE) \
-		  htab_PROTO(SUFFIX, KEY_TYPE, VALUE_TYPE, extern)
-#else
+
+#if __STDC_VERSION__ < 199901L
+  /* Wrapper functions are as usual. */
 #define htab_DECL(SUFFIX, KEY_TYPE, VALUE_TYPE, \
                   KEY_MEMBER, VALUE_MEMBER, NULL_VALUE) \
 		  htab_PROTO(SUFFIX, KEY_TYPE, VALUE_TYPE,)
@@ -79,6 +71,28 @@ extern "C" {
                   KEY_MEMBER, VALUE_MEMBER, NULL_VALUE) \
 		  htab_IMPL(SUFFIX, KEY_TYPE, VALUE_TYPE,, \
 			    KEY_MEMBER, VALUE_MEMBER, NULL_VALUE)
+
+#elif defined __GNUC__
+  /* GCC has wierd semantics for inlines. */
+#define htab_DECL(SUFFIX, KEY_TYPE, VALUE_TYPE, \
+                  KEY_MEMBER, VALUE_MEMBER, NULL_VALUE) \
+		  htab_IMPL(SUFFIX, KEY_TYPE, VALUE_TYPE, extern inline, \
+			    KEY_MEMBER, VALUE_MEMBER, NULL_VALUE)
+#define htab_DEFN(SUFFIX, KEY_TYPE, VALUE_TYPE, \
+                  KEY_MEMBER, VALUE_MEMBER, NULL_VALUE) \
+		  htab_IMPL(SUFFIX, KEY_TYPE, VALUE_TYPE,, \
+			    KEY_MEMBER, VALUE_MEMBER, NULL_VALUE)
+
+#else
+  /* True inlines are implemented. */
+#define htab_DECL(SUFFIX, KEY_TYPE, VALUE_TYPE, \
+                  KEY_MEMBER, VALUE_MEMBER, NULL_VALUE) \
+		  htab_IMPL(SUFFIX, KEY_TYPE, VALUE_TYPE, inline, \
+			    KEY_MEMBER, VALUE_MEMBER, NULL_VALUE)
+#define htab_DEFN(SUFFIX, KEY_TYPE, VALUE_TYPE, \
+                  KEY_MEMBER, VALUE_MEMBER, NULL_VALUE) \
+		  htab_PROTO(SUFFIX, KEY_TYPE, VALUE_TYPE, extern)
+
 #endif
 
 #define htab_IMPL(SUFFIX, KEY_TYPE, VALUE_TYPE, STORAGE, \
