@@ -36,22 +36,28 @@ extern "C" {
 
 #define vstr_NULL { NULL, 0, 0 }
 
-  inline char *vstr_get(const vstr *p) { return p->base; }
-  inline size_t vstr_len(const vstr *p) { return p->len; }
+#if defined __GNUC__
+#define vstr_inline extern inline
+#else
+#define vstr_inline inline
+#endif
+
+  vstr_inline char *vstr_get(const vstr *p) { return p->base; }
+  vstr_inline size_t vstr_len(const vstr *p) { return p->len; }
   void vstr_cancel(vstr *);
   void vstr_compact(vstr *);
   int vstr_insertn(vstr *, size_t index, const char *, size_t);
   int vstr_elide(vstr *, size_t index, size_t);
 
-  inline int vstr_insert(vstr *p, size_t index, const char *s) {
+  vstr_inline int vstr_insert(vstr *p, size_t index, const char *s) {
     return vstr_insertn(p, index, s, strlen(s));
   }
 
-  inline int vstr_appendn(vstr *p, const char *s, size_t n) {
+  vstr_inline int vstr_appendn(vstr *p, const char *s, size_t n) {
     return vstr_insertn(p, vstr_len(p), s, n);
   }
 
-  inline int vstr_append0(vstr *p, const char *s) {
+  vstr_inline int vstr_append0(vstr *p, const char *s) {
     return vstr_appendn(p, s, strlen(s));
   }
 

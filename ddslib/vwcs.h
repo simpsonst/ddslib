@@ -36,22 +36,28 @@ extern "C" {
 
 #define vwcs_NULL { NULL, 0, 0 }
 
-  inline wchar_t *vwcs_get(const vwcs *p) { return p->base; }
-  inline size_t vwcs_len(const vwcs *p) { return p->len; }
+#if defined __GNUC__
+#define vwcs_inline extern inline
+#else
+#define vwcs_inline inline
+#endif
+
+  vwcs_inline wchar_t *vwcs_get(const vwcs *p) { return p->base; }
+  vwcs_inline size_t vwcs_len(const vwcs *p) { return p->len; }
   void vwcs_cancel(vwcs *);
   void vwcs_compact(vwcs *);
   int vwcs_insertn(vwcs *, size_t index, const wchar_t *, size_t);
   int vwcs_elide(vwcs *, size_t index, size_t);
 
-  inline int vwcs_insert(vwcs *p, size_t index, const wchar_t *s) {
+  vwcs_inline int vwcs_insert(vwcs *p, size_t index, const wchar_t *s) {
     return vwcs_insertn(p, index, s, wcslen(s));
   }
 
-  inline int vwcs_appendn(vwcs *p, const wchar_t *s, size_t n) {
+  vwcs_inline int vwcs_appendn(vwcs *p, const wchar_t *s, size_t n) {
     return vwcs_insertn(p, vwcs_len(p), s, n);
   }
 
-  inline int vwcs_append0(vwcs *p, const wchar_t *s) {
+  vwcs_inline int vwcs_append0(vwcs *p, const wchar_t *s) {
     return vwcs_appendn(p, s, wcslen(s));
   }
 
