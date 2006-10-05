@@ -38,8 +38,10 @@ extern "C" {
 
 #if defined __GNUC__
 #define vwcs_inline extern inline
+#define vwcs_INLINEBODY(B) B struct tm
 #else
 #define vwcs_inline inline
+#define vwcs_INLINEBODY(B)
 #endif
 
   vwcs_inline wchar_t *vwcs_get(const vwcs *p) { return p->base; }

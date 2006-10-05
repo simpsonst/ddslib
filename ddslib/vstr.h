@@ -38,8 +38,10 @@ extern "C" {
 
 #if defined __GNUC__
 #define vstr_inline extern inline
+#define vstr_INLINEBODY(B) B struct tm
 #else
 #define vstr_inline inline
+#define vstr_INLINEBODY(B)
 #endif
 
   vstr_inline char *vstr_get(const vstr *p) { return p->base; }

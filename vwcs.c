@@ -81,8 +81,32 @@ int vwcs_elide(vwcs *p, size_t index, size_t n)
   return 0;
 }
 
-extern wchar_t *vwcs_get(const vwcs *);
-extern size_t vwcs_len(const vwcs *);
-extern int vwcs_insert(vwcs *p, size_t index, const wchar_t *s);
-extern int vwcs_appendn(vwcs *p, const wchar_t *s, size_t n);
-extern int vwcs_append0(vwcs *p, const wchar_t *s);
+extern wchar_t *vwcs_get(const vwcs *p)
+     vwcs_INLINEBODY
+(
+{ return p->base; }
+);
+
+extern size_t vwcs_len(const vwcs *p)
+     vwcs_INLINEBODY
+(
+{ return p->len; }
+);
+
+extern int vwcs_insert(vwcs *p, size_t index, const wchar_t *s)
+     vwcs_INLINEBODY
+(
+{ return vwcs_insertn(p, index, s, wcslen(s)); }
+);
+
+extern int vwcs_appendn(vwcs *p, const wchar_t *s, size_t n)
+     vwcs_INLINEBODY
+(
+{ return vwcs_insertn(p, vwcs_len(p), s, n); }
+);
+
+extern int vwcs_append0(vwcs *p, const wchar_t *s)
+     vwcs_INLINEBODY
+(
+{ return vwcs_appendn(p, s, wcslen(s)); }
+);

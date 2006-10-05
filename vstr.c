@@ -81,8 +81,32 @@ int vstr_elide(vstr *p, size_t index, size_t n)
   return 0;
 }
 
-extern char *vstr_get(const vstr *);
-extern size_t vstr_len(const vstr *);
-extern int vstr_insert(vstr *p, size_t index, const char *s);
-extern int vstr_appendn(vstr *p, const char *s, size_t n);
-extern int vstr_append0(vstr *p, const char *s);
+extern char *vstr_get(const vstr *p)
+     vstr_INLINEBODY
+(
+{ return p->base; }
+);
+
+extern size_t vstr_len(const vstr *p)
+     vstr_INLINEBODY
+(
+{ return p->len; }
+);
+
+extern int vstr_insert(vstr *p, size_t index, const char *s)
+     vstr_INLINEBODY
+(
+{ return vstr_insertn(p, index, s, strlen(s)); }
+);
+
+extern int vstr_appendn(vstr *p, const char *s, size_t n)
+     vstr_INLINEBODY
+(
+{ return vstr_insertn(p, vstr_len(p), s, n); }
+);
+
+extern int vstr_append0(vstr *p, const char *s)
+     vstr_INLINEBODY
+(
+{ return vstr_appendn(p, s, strlen(s)); }
+);
