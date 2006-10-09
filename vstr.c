@@ -22,6 +22,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "ddslib/vstr.h"
 
@@ -42,13 +43,13 @@ void vstr_compact(vstr *p)
   }
 }
 
-int vstr_insertn(vstr *p, size_t index, const char *s, size_t n)
+char *vstr_splice(vstr *p, size_t index, size_t n)
 {
   if (p->len + n > p->cap) {
     size_t nc = (p->len + n + 3u) / 4u * 5u;
     assert(nc >= p->len + n);
     void *np = realloc(p->base, nc);
-    if (!np) return -1;
+    if (!np) return NULL;
     p->base = np;
     p->cap = nc;
   }
@@ -56,8 +57,55 @@ int vstr_insertn(vstr *p, size_t index, const char *s, size_t n)
   size_t end = index + n;
   size_t rem = p->len - end;
   memmove(p->base + end, p->base + index, rem);
-  memcpy(p->base + p->len, s, n);
   p->len += n;
+  return p->base + index;
+}
+
+int vstr_vfinsert(vstr *p, size_t index, const char *fmt, va_list ap)
+{
+  // How much space is required?
+  int req;
+  va_list ap2;
+  va_copy(ap2, ap);
+  req = vsnprintf(NULL, 0, fmt, ap2);
+  va_end(ap2);
+
+  // Try to make that space available.
+  char *pos = vstr_splice(p, index, req);
+  if (!pos) return -1;
+
+  // Now write the characters in.
+  vsnprintf(pos, req, fmt, ap);
+  return 0;
+}
+
+int vstr_finsert(vstr *p, size_t index, const char *fmt, ...)
+{
+  va_list ap;
+  int rc;
+
+  va_start(ap, fmt);
+  rc = vstr_vfinsert(p, index, fmt, ap);
+  va_end(ap);
+  return rc;
+}
+
+int vstr_fappend(vstr *p, const char *fmt, ...)
+{
+  va_list ap;
+  int rc;
+
+  va_start(ap, fmt);
+  rc = vstr_vfappend(p, fmt, ap);
+  va_end(ap);
+  return rc;
+}
+
+int vstr_insertn(vstr *p, size_t index, const char *s, size_t n)
+{
+  char *pos = vstr_splice(p, index, n);
+  if (!pos) return -1;
+  memcpy(pos, s, n);
   return 0;
 }
 
@@ -109,4 +157,10 @@ extern int vstr_append0(vstr *p, const char *s)
      vstr_INLINEBODY
 (
 { return vstr_appendn(p, s, strlen(s)); }
+);
+
+extern int vstr_vfappend(vstr *p, const char *fmt, va_list ap)
+     vstr_INLINEBODY
+(
+{ return vstr_vfinsert(p, vstr_len(p), fmt, ap); }
 );

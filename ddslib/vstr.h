@@ -27,7 +27,9 @@
 extern "C" {
 #endif
 
+#include <stddef.h>
 #include <string.h>
+#include <stdarg.h>
 
   typedef struct {
     char *base;
@@ -48,8 +50,16 @@ extern "C" {
   vstr_inline size_t vstr_len(const vstr *p) { return p->len; }
   void vstr_cancel(vstr *);
   void vstr_compact(vstr *);
+  char *vstr_splice(vstr *, size_t index, size_t n);
+  int vstr_finsert(vstr *, size_t index, const char *fmt, ...);
+  int vstr_vfinsert(vstr *, size_t index, const char *fmt, va_list ap);
   int vstr_insertn(vstr *, size_t index, const char *, size_t);
   int vstr_elide(vstr *, size_t index, size_t);
+  int vstr_fappend(vstr *p, const char *fmt, ...);
+
+  vstr_inline int vstr_vfappend(vstr *p, const char *fmt, va_list ap) {
+    return vstr_vfinsert(p, vstr_len(p), fmt, ap);
+  }
 
   vstr_inline int vstr_insert(vstr *p, size_t index, const char *s) {
     return vstr_insertn(p, index, s, strlen(s));

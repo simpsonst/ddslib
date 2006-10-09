@@ -27,6 +27,7 @@
 extern "C" {
 #endif
 
+#include <stdarg.h>
 #include <wchar.h>
 
   typedef struct {
@@ -48,8 +49,16 @@ extern "C" {
   vwcs_inline size_t vwcs_len(const vwcs *p) { return p->len; }
   void vwcs_cancel(vwcs *);
   void vwcs_compact(vwcs *);
+  wchar_t *vwcs_splice(vwcs *, size_t index, size_t n);
+  int vwcs_finsert(vwcs *, size_t index, const wchar_t *fmt, ...);
+  int vwcs_vfinsert(vwcs *, size_t index, const wchar_t *fmt, va_list ap);
   int vwcs_insertn(vwcs *, size_t index, const wchar_t *, size_t);
   int vwcs_elide(vwcs *, size_t index, size_t);
+  int vwcs_fappend(vwcs *p, const wchar_t *fmt, ...);
+
+  vwcs_inline int vwcs_vfappend(vwcs *p, const wchar_t *fmt, va_list ap) {
+    return vwcs_vfinsert(p, vwcs_len(p), fmt, ap);
+  }
 
   vwcs_inline int vwcs_insert(vwcs *p, size_t index, const wchar_t *s) {
     return vwcs_insertn(p, index, s, wcslen(s));

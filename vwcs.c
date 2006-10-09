@@ -35,20 +35,20 @@ void vwcs_cancel(vwcs *p)
 void vwcs_compact(vwcs *p)
 {
   if (p->cap > p->len) {
-    void *np = realloc(p->base, p->len);
+    void *np = realloc(p->base, p->len * sizeof(wchar_t));
     if (!np) return;
     p->base = np;
     p->cap = p->len;
   }
 }
 
-int vwcs_insertn(vwcs *p, size_t index, const wchar_t *s, size_t n)
+wchar_t *vwcs_splice(vwcs *p, size_t index, size_t n)
 {
   if (p->len + n > p->cap) {
     size_t nc = (p->len + n + 3u) / 4u * 5u;
     assert(nc >= p->len + n);
-    void *np = realloc(p->base, nc);
-    if (!np) return -1;
+    void *np = realloc(p->base, nc * sizeof(wchar_t));
+    if (!np) return NULL;
     p->base = np;
     p->cap = nc;
   }
@@ -56,8 +56,55 @@ int vwcs_insertn(vwcs *p, size_t index, const wchar_t *s, size_t n)
   size_t end = index + n;
   size_t rem = p->len - end;
   wmemmove(p->base + end, p->base + index, rem);
-  wmemcpy(p->base + p->len, s, n);
   p->len += n;
+  return p->base + index;
+}
+
+int vwcs_vfinsert(vwcs *p, size_t index, const wchar_t *fmt, va_list ap)
+{
+  // How much space is required?
+  int req;
+  va_list ap2;
+  va_copy(ap2, ap);
+  req = vswprintf(NULL, 0, fmt, ap2);
+  va_end(ap2);
+
+  // Try to make that space available.
+  wchar_t *pos = vwcs_splice(p, index, req);
+  if (!pos) return -1;
+
+  // Now write the characters in.
+  vswprintf(pos, req, fmt, ap);
+  return 0;
+}
+
+int vwcs_finsert(vwcs *p, size_t index, const wchar_t *fmt, ...)
+{
+  va_list ap;
+  int rc;
+
+  va_start(ap, fmt);
+  rc = vwcs_vfinsert(p, index, fmt, ap);
+  va_end(ap);
+  return rc;
+}
+
+int vwcs_fappend(vwcs *p, const wchar_t *fmt, ...)
+{
+  va_list ap;
+  int rc;
+
+  va_start(ap, fmt);
+  rc = vwcs_vfappend(p, fmt, ap);
+  va_end(ap);
+  return rc;
+}
+
+int vwcs_insertn(vwcs *p, size_t index, const wchar_t *s, size_t n)
+{
+  wchar_t *pos = vwcs_splice(p, index, n);
+  if (!pos) return -1;
+  wmemcpy(pos, s, n);
   return 0;
 }
 
@@ -72,7 +119,7 @@ int vwcs_elide(vwcs *p, size_t index, size_t n)
   if (p->len < p->cap / 4u) {
     size_t nc = (p->len + 3u) / 4u * 5u;
     assert(nc >= p->len);
-    void *np = realloc(p->base, nc);
+    void *np = realloc(p->base, nc * sizeof(wchar_t));
     if (np) {
       p->base = np;
       p->cap = nc;
@@ -109,4 +156,10 @@ extern int vwcs_append0(vwcs *p, const wchar_t *s)
      vwcs_INLINEBODY
 (
 { return vwcs_appendn(p, s, wcslen(s)); }
+);
+
+extern int vwcs_vfappend(vwcs *p, const wchar_t *fmt, va_list ap)
+     vwcs_INLINEBODY
+(
+{ return vwcs_vfinsert(p, vwcs_len(p), fmt, ap); }
 );
