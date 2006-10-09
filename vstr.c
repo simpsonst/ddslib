@@ -129,6 +129,14 @@ int vstr_elide(vstr *p, size_t index, size_t n)
   return 0;
 }
 
+int vstr_term(vstr *p)
+{
+  if (!p->base) return 0;
+  if (p->len == 0 || p->base[p->len - 1] != '\0')
+    if (vstr_appendn(p, "", 1) < 0) return -1;
+  return 0;
+}
+
 extern char *vstr_get(const vstr *p)
      vstr_INLINEBODY
 (

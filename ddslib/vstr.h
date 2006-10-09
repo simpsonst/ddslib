@@ -50,6 +50,7 @@ extern "C" {
   vstr_inline size_t vstr_len(const vstr *p) { return p->len; }
   void vstr_cancel(vstr *);
   void vstr_compact(vstr *);
+  int vstr_term(vstr *);
   char *vstr_splice(vstr *, size_t index, size_t n);
   int vstr_finsert(vstr *, size_t index, const char *fmt, ...);
   int vstr_vfinsert(vstr *, size_t index, const char *fmt, va_list ap);

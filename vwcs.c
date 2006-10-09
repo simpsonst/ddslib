@@ -128,6 +128,14 @@ int vwcs_elide(vwcs *p, size_t index, size_t n)
   return 0;
 }
 
+int vwcs_term(vwcs *p)
+{
+  if (!p->base) return 0;
+  if (p->len == 0 || p->base[p->len - 1] != L'\0')
+    if (vwcs_appendn(p, L"", 1) < 0) return -1;
+  return 0;
+}
+
 extern wchar_t *vwcs_get(const vwcs *p)
      vwcs_INLINEBODY
 (
