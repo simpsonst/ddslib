@@ -148,9 +148,12 @@ extern "C" {
   htab_DECL(sp, const char *, void *, pointer, pointer, NULL);
   htab_DECL(ss, const char *, char *, pointer, pointer, NULL);
   htab_DECL(wp, const wchar_t *, void *, pointer, pointer, NULL);
+  htab_DECL(ww, const wchar_t *, wchar_t *, pointer, pointer, NULL);
+  htab_DECL(ws, const wchar_t *, char *, pointer, pointer, NULL);
+  htab_DECL(sw, const char *, wchar_t *, pointer, pointer, NULL);
   htab_DECL(pp, const void *, void *, pointer, pointer, NULL);
+  htab_DECL(wu, const wchar_t *, uintmax_t, pointer, unsigned_integer, 0);
   htab_DECL(su, const char *, uintmax_t, pointer, unsigned_integer, 0);
-  htab_DECL(wu, const char *, uintmax_t, pointer, unsigned_integer, 0);
 
   size_t htab_hash_str(void *, htab_const);
   size_t htab_hash_wcs(void *, htab_const);

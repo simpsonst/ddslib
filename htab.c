@@ -253,7 +253,10 @@ void htab_apply(htab self, void *ctxt,
 
 htab_DEFN(sp, const char *, void *, pointer, pointer, NULL);
 htab_DEFN(ss, const char *, char *, pointer, pointer, NULL);
+htab_DEFN(su, const char *, uintmax_t, pointer, unsigned_integer, 0);
 htab_DEFN(wp, const wchar_t *, void *, pointer, pointer, NULL);
 htab_DEFN(pp, const void *, void *, pointer, pointer, NULL);
-htab_DEFN(su, const char *, uintmax_t, pointer, unsigned_integer, 0);
-htab_DEFN(wu, const char *, uintmax_t, pointer, unsigned_integer, 0);
+htab_DEFN(wu, const wchar_t *, uintmax_t, pointer, unsigned_integer, 0);
+htab_DEFN(ww, const wchar_t *, wchar_t *, pointer, pointer, NULL);
+htab_DEFN(ws, const wchar_t *, char *, pointer, pointer, NULL);
+htab_DEFN(sw, const char *, wchar_t *, pointer, pointer, NULL);
