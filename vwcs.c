@@ -160,7 +160,7 @@ extern int vwcs_appendn(vwcs *p, const wchar_t *s, size_t n)
 { return vwcs_insertn(p, vwcs_len(p), s, n); }
 );
 
-extern int vwcs_append0(vwcs *p, const wchar_t *s)
+extern int vwcs_append(vwcs *p, const wchar_t *s)
      vwcs_INLINEBODY
 (
 { return vwcs_appendn(p, s, wcslen(s)); }

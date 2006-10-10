@@ -70,7 +70,7 @@ extern "C" {
     return vstr_insertn(p, vstr_len(p), s, n);
   }
 
-  vstr_inline int vstr_append0(vstr *p, const char *s) {
+  vstr_inline int vstr_append(vstr *p, const char *s) {
     return vstr_appendn(p, s, strlen(s));
   }
 

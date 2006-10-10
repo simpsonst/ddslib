@@ -161,7 +161,7 @@ extern int vstr_appendn(vstr *p, const char *s, size_t n)
 { return vstr_insertn(p, vstr_len(p), s, n); }
 );
 
-extern int vstr_append0(vstr *p, const char *s)
+extern int vstr_append(vstr *p, const char *s)
      vstr_INLINEBODY
 (
 { return vstr_appendn(p, s, strlen(s)); }

@@ -69,7 +69,7 @@ extern "C" {
     return vwcs_insertn(p, vwcs_len(p), s, n);
   }
 
-  vwcs_inline int vwcs_append0(vwcs *p, const wchar_t *s) {
+  vwcs_inline int vwcs_append(vwcs *p, const wchar_t *s) {
     return vwcs_appendn(p, s, wcslen(s));
   }
 
