@@ -230,6 +230,27 @@ _Bool htab_del(htab self, htab_const key)
   return r;
 }
 
+void htab_apply(htab self, void *ctxt,
+		htab_apprc (*op)(void *, htab_const, htab_obj))
+{
+  for (size_t i = 0; i < self->len; i++) {
+    struct entry *n, *e;
+    for (e = self->base[i]; e && (n = e->next, true); e = n) {
+      htab_apprc rc = (*op)(ctxt, *(htab_const *) &e->key, e->value);
+      if (rc & htab_REMOVE) {
+	if (self->release_value)
+	  (*self->release_value)(self->ctxt, e->value);
+	if (self->release_key)
+	  (*self->release_key)(self->ctxt, e->key);
+	free(e);
+      }
+      if (rc & htab_STOP)
+	return;
+    }
+  }
+}
+
+
 htab_DEFN(sp, const char *, void *, pointer, pointer, NULL);
 htab_DEFN(ss, const char *, char *, pointer, pointer, NULL);
 htab_DEFN(wp, const wchar_t *, void *, pointer, pointer, NULL);

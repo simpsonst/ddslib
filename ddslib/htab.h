@@ -55,6 +55,11 @@ extern "C" {
 		 void (*release_value)(void *ctxt, htab_obj val));
   void htab_close(htab);
 
+  typedef enum { htab_REMOVE = 1, htab_STOP = 2 } htab_apprc;
+
+  void htab_apply(htab, void *,
+		  htab_apprc (*op)(void *, htab_const, htab_obj));
+
   _Bool htab_get(htab, htab_const, htab_obj *);
   _Bool htab_pop(htab, htab_const, htab_obj *);
   _Bool htab_replace(htab, htab_const, htab_obj *, htab_obj val);
