@@ -29,8 +29,9 @@ endif
 
 ddslib_mod=bheap.o htab.o vstr.o vwcs.o
 
-testheap_obj=testheap.o libddslib.a
-testhash_obj=testhash.o libddslib.a
+testheap_obj=testheap.o bheap.o
+testhash_obj=testhash.o htab.o
+testvstr_obj=testvstr.o vstr.o
 
 all:: $(LIBRARIES:%=lib%.a)
 
@@ -76,12 +77,15 @@ testheap: $(testheap_obj)
 testhash: $(testhash_obj)
 	$(LINK.c) -o $@ $(testhash_obj) $(testhash_lib)
 
+testvstr: $(testvstr_obj)
+	$(LINK.c) -o $@ $(testvstr_obj) $(testvstr_lib)
+
 bheap.o: ddslib/bheap.h
 htab.o: ddslib/htab.h
 testhash.o: ddslib/htab.h
 testheap.o: ddslib/bheap.h
 testree.o: ddslib/btree.h
-vstr.o: ddslib/vstr.h
+testvstr.o vstr.o: ddslib/vstr.h
 vwcs.o: ddslib/vwcs.h
 
 HEADERS_C=$(filter %.h,$(HEADERS))
