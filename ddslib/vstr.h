@@ -36,7 +36,7 @@ extern "C" {
     size_t cap, len;
   } vstr;
 
-#define vstr_NULL { NULL, 0, 0 }
+#define vstr_NULL ((vstr) { NULL, 0, 0 })
 
 #if defined __GNUC__
 #define vstr_inline extern inline

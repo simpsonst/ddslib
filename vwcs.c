@@ -54,7 +54,7 @@ wchar_t *vwcs_splice(vwcs *p, size_t index, size_t n)
   }
   if (index > p->len) index = p->len;
   size_t end = index + n;
-  size_t rem = p->len - end;
+  size_t rem = p->len - index;
   wmemmove(p->base + end, p->base + index, rem);
   p->len += n;
   return p->base + index;

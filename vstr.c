@@ -55,7 +55,8 @@ char *vstr_splice(vstr *p, size_t index, size_t n)
   }
   if (index > p->len) index = p->len;
   size_t end = index + n;
-  size_t rem = p->len - end;
+  assert(p->len >= index);
+  size_t rem = p->len - index;
   memmove(p->base + end, p->base + index, rem);
   p->len += n;
   return p->base + index;
@@ -103,7 +104,9 @@ int vstr_fappend(vstr *p, const char *fmt, ...)
 
 int vstr_insertn(vstr *p, size_t index, const char *s, size_t n)
 {
+  printf("%s %d\n", __FILE__, __LINE__), fflush(stdout);
   char *pos = vstr_splice(p, index, n);
+  printf("%s %d\n", __FILE__, __LINE__), fflush(stdout);
   if (!pos) return -1;
   memcpy(pos, s, n);
   return 0;

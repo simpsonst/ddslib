@@ -35,7 +35,7 @@ extern "C" {
     size_t cap, len;
   } vwcs;
 
-#define vwcs_NULL { NULL, 0, 0 }
+#define vwcs_NULL ((vwcs) { NULL, 0, 0 })
 
 #if defined __GNUC__
 #define vwcs_inline extern inline
