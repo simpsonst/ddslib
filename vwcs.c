@@ -83,7 +83,8 @@ int vwcs_vfinsert(vwcs *p, size_t index, const wchar_t *fmt, va_list ap)
 	old = p->base[index + req];
 
       // Now write the characters in.
-      vswprintf(pos, req + 1, fmt, ap);
+      int rc = vswprintf(pos, req + 1, fmt, ap);
+      assert(rc >= 0);
 
       if (gap)
 	// Remove the trailing L'\0'.

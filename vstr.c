@@ -85,7 +85,8 @@ int vstr_vfinsert(vstr *p, size_t index, const char *fmt, va_list ap)
 	old = p->base[index + req];
 
       // Now write the characters in.
-      vsnprintf(pos, req + 1, fmt, ap);
+      int rc = vsnprintf(pos, req + 1, fmt, ap);
+      assert(rc >= 0);
 
       if (gap)
 	// Remove the trailing '\0'.
