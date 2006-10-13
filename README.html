@@ -1,3 +1,5 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+                      "http://www.w3.org/TR/html4/loose.dtd">
 <html lang="en">
 
 <head>
@@ -403,6 +405,390 @@ in order to use thes functions.</p>
 
 <p>Note that no memory allocation is performed &mdash; the user
 provides that himself.</p>
+
+
+
+<h2 id="htab">Hash tables</h2>
+
+<pre class=C>
+#include &lt;ddslib/htab.h&gt;
+</pre>
+
+<p>This header defines a <code class=C>htab</code> type representing a
+hash table for hashing any type to any other.  Keys and values are
+represented by the unions <code class=C>htab_const</code> and <code
+class=C>htab_obj</code>, which are identical except that the
+<code>pointer</code> member in one of them points to a <code
+class=C>const</code> object.</p>
+
+
+<h3>Creating a hash table</h3>
+
+<p>To create hash table, you need to define several functions to
+manipulate data that will go in it.  Firstly, a function to compute a
+hash code for any given key is required:</p>
+
+<pre class=C>
+size_t my_hash(void *context, htab_const key);
+</pre>
+
+<p>The functions <code class=C>htab_hash_str</code> and <code
+class=C>htab_hash_wcs</code> are already provided to compute hash
+codes from null-terminated strings (multibyte and wide,
+respectively).</p>
+
+<p>Also required is a function to compare a sought key against one
+already in the table:</p>
+
+<pre class=C>
+int my_cmp(void *context, htab_const sought, htab_const extant);
+</pre>
+
+<p>The functions <code class=C>htab_cmp_str</code> and <code
+class=C>htab_cmp_wcs</code> are already provided to compare
+null-terminated strings (multibyte and wide, respectively).</p>
+
+<p>The remaining functions are optional, and can be <code
+class=C>NULL</code>.</p>
+
+<p>Two functions, possibly the same one, can be specified to copy a
+key or value:</p>
+
+<pre class=C>
+htab_obj my_copykey(void *context, htab_const key);
+htab_obj my_copyvalue(void *context, htab_const value);
+</pre>
+
+<p>The functions <code class=C>htab_copy_str</code> and <code
+class=C>htab_copy_wcs</code> are already provided to copy
+null-terminated strings (multibyte and wide, respectively) by
+dynamically allocating with <code class=C>malloc</code>.</p>
+
+<p>The remaining two functions, which may also be identical, can be
+specified to release a key or value object:</p>
+
+<pre class=C>
+void my_freekey(void *context, htab_obj key);
+void my_freevalue(void *context, htab_obj value);
+</pre>
+
+<p>A single function <code class=C>htab_release_free</code> is
+provided to release anything allocated using <code
+class=C>malloc</code> by calling <code class=C>free</code>.</p>
+
+<p>With these functions in place, you can call:</p>
+
+<pre class=C>
+htab my_table;
+
+my_table = htab_open(size,
+                     context,
+                     &amp;my_hash,
+                     &amp;my_cmp,
+                     &amp;my_copykey,
+                     &amp;my_copyvalue,
+                     &amp;my_freekey,
+                     &amp;my_freevalue);
+</pre>
+
+<p>A <code class=C>NULL</code> return indicates failure.</p>
+
+<p>The <code class=C>context</code> argument is supplied on each call
+to configuration functions.</p>
+
+
+
+<h3>Destroying a hash table</h3>
+
+<p>To discard a table after use, call:</p>
+
+<pre class=C>
+htab_close(my_table);
+</pre>
+
+
+
+<h3>Hash table insertion</h3>
+
+<p>To place an entry in the table, use:</p>
+
+<pre class=C>
+if (htab_put(my_table, key, value)) {
+  // Insertion was successful.
+}
+</pre>
+
+<p>The old value, if any, will be released using the deallocation
+function specified when the table was created.  If you want to extract
+it instead, use:</p>
+
+<pre class=C>
+htab_obj oldvalue;
+
+switch (htab_rpl(my_table, key, &lt;oldvalue, value)) {
+case htab_REPLACED:
+  // There was a previous value.
+  break;
+case htab_ERROR:
+  // Insertion failed.
+  break;
+case htab_OKAY:
+  // Insertion was successful.
+  break;
+}
+</pre>
+
+
+<h3>Hash table removal</h3>
+
+<p>To remove an entry from the table, use:</p>
+
+<pre class=C>
+if (htab_del(my_table, key)) {
+  // There was an old value.
+}
+</pre>
+
+<p>The old value will be released using the deallocation function
+specified when the table was created.  If you want to extract it
+instead, use:</p>
+
+<pre class=C>
+htab_obj value;
+if (htab_pop(my_table, key, &lt;value)) {
+  // There was an old value.
+}
+</pre>
+
+
+<h3>Hash table inspection</h3>
+
+<p>You can obtain the value for a specific <code class=C>key</code>
+with:</p>
+
+<pre class=C>
+htab_obj value;
+if (htab_get(my_table, key, &lt;value)) {
+  // Value found...
+}
+</pre>
+
+<p>Give <code class=C>NULL</code> as the third argument if you only
+want to test for existence, or use the equivalent <code
+class=C>htab_tst(my_table, key)</code>.</p>
+
+
+<h3>Hash table traversal</h3>
+
+<p>To apply a function of the following form:</p>
+
+<pre class=C>
+htab_apprc my_func(void *app_ctxt, htab_const key, htab_obj value);
+</pre>
+
+<p>&hellip;to all entries in a table, use:</p>
+
+<pre class=C>
+htab_apply(my_table, app_ctxt, &amp;my_func);
+</pre>
+
+<p>The function should return a bit-wise OR of the following values,
+as requireed:</p>
+
+<dl>
+
+<dt><code class=C>htab_REMOVE</code></dt>
+
+<dd><p>Remove the entry just supplied.</p></dd>
+
+<dt><code class=C>htab_STOP</code></dt>
+
+<dd><p>Halt the traversal.</p></dd>
+
+</dl>
+
+<p>The function should not otherwise attempt to modify the table.</p>
+
+
+<h3>Adaptation functions</h3>
+
+<p>Some functions are provided to conveniently adapt the hash-table
+interface to the types it actually uses.</p>
+
+<pre class=C>
+<var>V</var> htab_get<var>S</var><var>T</var>(htab self, <var>K</var> key);
+<var>V</var> htab_pop<var>S</var><var>T</var>(htab self, <var>K</var> key);
+_Bool htab_put<var>S</var><var>T</var>(htab self, <var>K</var> key, <var>V</var> val);
+_Bool htab_tst<var>S</var><var>T</var>(htab self, <var>K</var> key);
+_Bool htab_del<var>S</var><var>T</var>(htab self, <var>K</var> key);
+</pre>
+
+<p>Each corresponds to one of the native functions already described,
+except that the <samp>get</samp> and <samp>pop</samp> calls return the
+current/removed value, or a &lsquo;miss&rsquo; value.</p>
+
+<p>The <var>S</var> character indicates the key type <var>K</var>,
+while <var>T</var> corresponds to the value type <var>V</var>.</p>
+
+<table>
+<thead>
+
+<tr><th><var>S</var> or <var>T</var></th> <th>Type</th> <th>Field of
+<code class=C>htab_obj</code> or <code class=C>htab_const</code></th>
+<th>&lsquo;Miss&rsquo; value</th></tr>
+
+</thead>
+
+<tbody>
+
+<tr><td><samp>s</samp></td> <td>Null-terminated <code
+class=C>char</code> string</td> <td><code class=C>pointer</code></td>
+<td><code class=C>NULL</code></td></tr>
+
+<tr><td><samp>w</samp></td> <td>Null-terminated <code
+class=C>wchar_t</code></td> <td><code class=C>pointer</code></td>
+<td><code class=C>NULL</code></td></tr>
+
+<tr><td><samp>p</samp></td> <td><code class=C>void*</code></td>
+<td><code class=C>pointer</code></td> <td><code
+class=C>NULL</code></td></tr>
+
+<tr><td><samp>u</samp></td> <td><code class=C>uintmax_t</code></td>
+<td><code class=C>unsigned_integer</code></td> <td><code
+class=C>0</code></td></tr>
+
+</tbody>
+</table>
+
+<p>The suites for the following <var>S</var><var>T</var> combinations
+are defined:</p>
+
+<ul>
+<li><samp>sp</samp></li>
+<li><samp>ss</samp></li>
+<li><samp>wp</samp></li>
+<li><samp>ww</samp></li>
+<li><samp>ws</samp></li>
+<li><samp>sw</samp></li>
+<li><samp>pp</samp></li>
+<li><samp>su</samp></li>
+</ul>
+
+<p>More may be added in future.  You can add your own static ones with
+(for example):</p>
+
+<pre class=C>
+htab_IMPL(<var>suffix</var>, <var>key-type</var>, <var>value-type</var>,
+          static inline, <var>key-member</var>, <var>value-member</vat>,
+          <var>&lsquo;miss&rsquo;-value</var>);
+</pre>
+
+<h2 id="vstr">Variable-length strings</h2>
+
+<pre class=C>
+#include &lt;ddslib/vstr.h&gt;
+#include &lt;ddslib/vwcs.h&gt;
+</pre>
+
+<p>These headers respectively define the types <code
+class=C>vstr</code> and <code class=C>vwcs</code> to hold strings of
+multibyte or wide characters.  They are held as a base address and a
+length, and include a capacity which is at least the length.
+Insertions and deletions automatically adjust the capacity as
+necessary.  Null-terminated, measured or <code
+class=C>printf</code>-format strings can be inserted.  Strings can be
+made null-terminated for compatibility easily.</p>
+
+<p>The APIs for wide-character strings are identical to
+multibyte-character strings, except for changing the prefix <code
+class=C>vstr_</code> to <code class=C>vwcs_</code>.  The rest of this
+documentation describes only the former.</p>
+
+<p>A non-zero-initialized variable variable should be initialised with
+<code class=C>vstr_NULL</code>.  In this state, it is safe to destroy.
+To reset to this state, use:</p>
+
+<pre class=C>
+vstr str;
+vstr_cancel(&amp;str);
+</pre>
+
+<p>Use <code class=C>vstr_get</code> to obtain the address of the
+first character (or a null pointer in its initial state), and <code
+class=C>vstr_len</code> to obtain its length.  For example, to print
+out a string containing no null characters:</p>
+
+<pre class=C>
+printf("%.*s", (int) vstr_len(&amp;str), vstr_get(&amp;str));
+</pre>
+
+<p>To make space for inserting <code class=C>len</code> characters
+starting at position <code class=C>start</code>, use:</p>
+
+<pre class=C>
+vstr_splice(&amp;str, start, len);
+</pre>
+
+<p>To insert an array of characters, including nulls:</p>
+
+<pre class=C>
+vstr_insertn(&amp;str, start, "Hello", 5);
+</pre>
+
+<p>To insert a null-terminated string, excluding the null:</p>
+
+<pre class=C>
+vstr_insert(&amp;str, start, "Hello");
+</pre>
+
+<p><code class=C>vstr_insertf</code> takes a <code
+class=C>printf</code>-style format string and a variable number of
+arguments:</p>
+
+<pre class=C>
+vstr_insertf(&amp;str, start, "Size %d x %d", width, height);
+</pre>
+
+<p><code class=C>vstr_vinsertf</code> is similar but takes a <code
+class=C>va_list</code> instead of the variable arguments.</p>
+
+<p>There is also a suite of functions which insert from another <code
+class=C>vstr</code>.  In regular-expression format, their names are:
+<code class=C>vstr_insertv[ir]?n?</code>.  For each of these, the
+first two arguments are as before: <code class=C>vstr*</code> of the
+string to be modified, and a <code class=C>size_t</code> giving the
+insertion point.  The next argument is then a <code class=C>const
+vstr*</code>, giving the source string.  An <samp>i</samp> or
+<samp>r</samp> in the name indicates that an further <code
+class=C>size_t</code> is required to specify the start point within
+the source string (<samp>i</samp> means &lsquo;index from the
+start&rsquo;; <samp>r</samp> means &lsquo;index from the end&rsquo;).
+An <samp>n</samp> indicates an extra <code class=C>size_t</code>
+specifying the maximum number of characters to be copied.</p>
+
+<p>All insertion functions clamp the insertion point to within the
+original array.  For each <code class=C>vstr_*insert*</code> function,
+there is a corresponding <code class=C>vstr_*append*</code> function
+which inserts at the end.</p>
+
+<p>All the insertion functions and <code class=C>vstr_splice</code>
+return zero on success and -1 on failure.</p>
+
+<p>To remove several characters, use:</p>
+
+<pre class=C>
+vstr_elide(&amp;str, start, length);
+</pre>
+
+<p>&hellip;which always returns zero, currently.</p>
+
+
+<p>The following makes the string capacity match the length exactly,
+so it uses the minimum amount of memory:</p>
+
+<pre class=C>
+vstr_compact(&amp;str);
+</pre>
 
 
 </body>
