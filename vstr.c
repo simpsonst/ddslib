@@ -64,20 +64,41 @@ char *vstr_splice(vstr *p, size_t index, size_t n)
 
 int vstr_vfinsert(vstr *p, size_t index, const char *fmt, va_list ap)
 {
+  if (index > p->len) index = p->len;
+
   // How much space is required?
   int req;
   va_list ap2;
   va_copy(ap2, ap);
   req = vsnprintf(NULL, 0, fmt, ap2);
   va_end(ap2);
+  if (req >= 0) {
+    // Do we need to allocate an extra byte at the end for the '\0'
+    // which printf will add?
+    int gap = index >= p->len;
 
-  // Try to make that space available.
-  char *pos = vstr_splice(p, index, req);
-  if (!pos) return -1;
+    // Try to make that space available.
+    char *pos = vstr_splice(p, index, req + gap);
+    if (pos) {
+      char old;
+      if (!gap)
+	old = p->base[index + req];
 
-  // Now write the characters in.
-  vsnprintf(pos, req, fmt, ap);
-  return 0;
+      // Now write the characters in.
+      vsnprintf(pos, req + 1, fmt, ap);
+
+      if (gap)
+	// Remove the trailing '\0'.
+	vstr_elide(p, p->len - 1, 1);
+      else
+	// Restore the original character overwritten by the '\0'.
+	p->base[index + req] = old;
+      req = 0;
+    } else
+      req = -1;
+  }
+  va_end(ap);
+  return req;
 }
 
 int vstr_finsert(vstr *p, size_t index, const char *fmt, ...)
