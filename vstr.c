@@ -62,7 +62,7 @@ char *vstr_splice(vstr *p, size_t index, size_t n)
   return p->base + index;
 }
 
-int vstr_vfinsert(vstr *p, size_t index, const char *fmt, va_list ap)
+int vstr_vinsertf(vstr *p, size_t index, const char *fmt, va_list ap)
 {
   if (index > p->len) index = p->len;
 
@@ -80,7 +80,7 @@ int vstr_vfinsert(vstr *p, size_t index, const char *fmt, va_list ap)
     // Try to make that space available.
     char *pos = vstr_splice(p, index, req + gap);
     if (pos) {
-      char old;
+      char old = '\0';
       if (!gap)
 	old = p->base[index + req];
 
@@ -102,24 +102,24 @@ int vstr_vfinsert(vstr *p, size_t index, const char *fmt, va_list ap)
   return req;
 }
 
-int vstr_finsert(vstr *p, size_t index, const char *fmt, ...)
+int vstr_insertf(vstr *p, size_t index, const char *fmt, ...)
 {
   va_list ap;
   int rc;
 
   va_start(ap, fmt);
-  rc = vstr_vfinsert(p, index, fmt, ap);
+  rc = vstr_vinsertf(p, index, fmt, ap);
   va_end(ap);
   return rc;
 }
 
-int vstr_fappend(vstr *p, const char *fmt, ...)
+int vstr_appendf(vstr *p, const char *fmt, ...)
 {
   va_list ap;
   int rc;
 
   va_start(ap, fmt);
-  rc = vstr_vfappend(p, fmt, ap);
+  rc = vstr_vappendf(p, fmt, ap);
   va_end(ap);
   return rc;
 }
@@ -152,6 +152,47 @@ int vstr_elide(vstr *p, size_t index, size_t n)
     }
   }
   return 0;
+}
+
+int vstr_insertvin(vstr *p, size_t index,
+		   const vstr *q, size_t qi, size_t qn)
+{
+  if (qi >= vstr_len(q)) return 0;
+  if (qi + qn > vstr_len(q)) qn = vstr_len(q) - qi;
+  return vstr_insertn(p, index, vstr_get(q) + qi, qn);
+}
+
+int vstr_insertvrn(vstr *p, size_t index,
+		   const vstr *q, size_t qi, size_t qn)
+{
+  if (qi >= vstr_len(q)) return 0;
+  if (qi + qn > vstr_len(q)) qn = vstr_len(q) - qi;
+  qi = vstr_len(q) - qi - qn;
+  return vstr_insertn(p, index, vstr_get(q) + qi, qn);
+}
+
+int vstr_insertvi(vstr *p, size_t index, const vstr *q, size_t qi)
+{
+  if (qi >= vstr_len(q)) return 0;
+  return vstr_insertvin(p, index, q, qi, vstr_len(q) - qi);
+}
+
+int vstr_insertvn(vstr *p, size_t index, const vstr *q, size_t qn)
+{
+  if (qn > vstr_len(q)) qn = vstr_len(q);
+  return vstr_insertvin(p, index, q, 0, qn);
+}
+
+int vstr_insertvr(vstr *p, size_t index, const vstr *q, size_t qi)
+{
+  if (qi > vstr_len(q)) return 0;
+  qi = vstr_len(q) - qi;
+  return vstr_insertn(p, index, vstr_get(q), qi);
+}
+
+int vstr_insertv(vstr *p, size_t index, const vstr *q)
+{
+  return vstr_insertn(p, index, vstr_get(q), vstr_len(q));
 }
 
 int vstr_term(vstr *p)
@@ -192,8 +233,38 @@ extern int vstr_append(vstr *p, const char *s)
 { return vstr_appendn(p, s, strlen(s)); }
 );
 
-extern int vstr_vfappend(vstr *p, const char *fmt, va_list ap)
+extern int vstr_vappendf(vstr *p, const char *fmt, va_list ap)
      vstr_INLINEBODY
 (
-{ return vstr_vfinsert(p, vstr_len(p), fmt, ap); }
+{ return vstr_vinsertf(p, vstr_len(p), fmt, ap); }
 );
+
+int vstr_appendvin(vstr *p, const vstr *q, size_t qi, size_t qn)
+{
+  return vstr_insertvin(p, vstr_len(p), q, qi, qn);
+}
+
+int vstr_appendvrn(vstr *p, const vstr *q, size_t qi, size_t qn)
+{
+  return vstr_insertvrn(p, vstr_len(p), q, qi, qn);
+}
+
+int vstr_appendvi(vstr *p, const vstr *q, size_t qi)
+{
+  return vstr_insertvi(p, vstr_len(p), q, qi);
+}
+
+int vstr_appendvn(vstr *p, const vstr *q, size_t qn)
+{
+  return vstr_insertvn(p, vstr_len(p), q, qn);
+}
+
+int vstr_appendvr(vstr *p, const vstr *q, size_t qi)
+{
+  return vstr_insertvr(p, vstr_len(p), q, qi);
+}
+
+int vstr_appendv(vstr *p, const vstr *q)
+{
+  return vstr_insertv(p, vstr_len(p), q);
+}

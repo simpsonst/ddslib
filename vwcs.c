@@ -60,7 +60,7 @@ wchar_t *vwcs_splice(vwcs *p, size_t index, size_t n)
   return p->base + index;
 }
 
-int vwcs_vfinsert(vwcs *p, size_t index, const wchar_t *fmt, va_list ap)
+int vwcs_vinsertf(vwcs *p, size_t index, const wchar_t *fmt, va_list ap)
 {
   if (index > p->len) index = p->len;
 
@@ -78,7 +78,7 @@ int vwcs_vfinsert(vwcs *p, size_t index, const wchar_t *fmt, va_list ap)
     // Try to make that space available.
     wchar_t *pos = vwcs_splice(p, index, req + gap);
     if (pos) {
-      wchar_t old;
+      wchar_t old = '\0';
       if (!gap)
 	old = p->base[index + req];
 
@@ -100,24 +100,24 @@ int vwcs_vfinsert(vwcs *p, size_t index, const wchar_t *fmt, va_list ap)
   return req;
 }
 
-int vwcs_finsert(vwcs *p, size_t index, const wchar_t *fmt, ...)
+int vwcs_insertf(vwcs *p, size_t index, const wchar_t *fmt, ...)
 {
   va_list ap;
   int rc;
 
   va_start(ap, fmt);
-  rc = vwcs_vfinsert(p, index, fmt, ap);
+  rc = vwcs_vinsertf(p, index, fmt, ap);
   va_end(ap);
   return rc;
 }
 
-int vwcs_fappend(vwcs *p, const wchar_t *fmt, ...)
+int vwcs_appendf(vwcs *p, const wchar_t *fmt, ...)
 {
   va_list ap;
   int rc;
 
   va_start(ap, fmt);
-  rc = vwcs_vfappend(p, fmt, ap);
+  rc = vwcs_vappendf(p, fmt, ap);
   va_end(ap);
   return rc;
 }
@@ -148,6 +148,47 @@ int vwcs_elide(vwcs *p, size_t index, size_t n)
     }
   }
   return 0;
+}
+
+int vwcs_insertvin(vwcs *p, size_t index,
+		   const vwcs *q, size_t qi, size_t qn)
+{
+  if (qi >= vwcs_len(q)) return 0;
+  if (qi + qn > vwcs_len(q)) qn = vwcs_len(q) - qi;
+  return vwcs_insertn(p, index, vwcs_get(q) + qi, qn);
+}
+
+int vwcs_insertvrn(vwcs *p, size_t index,
+		   const vwcs *q, size_t qi, size_t qn)
+{
+  if (qi >= vwcs_len(q)) return 0;
+  if (qi + qn > vwcs_len(q)) qn = vwcs_len(q) - qi;
+  qi = vwcs_len(q) - qi - qn;
+  return vwcs_insertn(p, index, vwcs_get(q) + qi, qn);
+}
+
+int vwcs_insertvi(vwcs *p, size_t index, const vwcs *q, size_t qi)
+{
+  if (qi >= vwcs_len(q)) return 0;
+  return vwcs_insertvin(p, index, q, qi, vwcs_len(q) - qi);
+}
+
+int vwcs_insertvn(vwcs *p, size_t index, const vwcs *q, size_t qn)
+{
+  if (qn > vwcs_len(q)) qn = vwcs_len(q);
+  return vwcs_insertvin(p, index, q, 0, qn);
+}
+
+int vwcs_insertvr(vwcs *p, size_t index, const vwcs *q, size_t qi)
+{
+  if (qi > vwcs_len(q)) return 0;
+  qi = vwcs_len(q) - qi;
+  return vwcs_insertn(p, index, vwcs_get(q), qi);
+}
+
+int vwcs_insertv(vwcs *p, size_t index, const vwcs *q)
+{
+  return vwcs_insertn(p, index, vwcs_get(q), vwcs_len(q));
 }
 
 int vwcs_term(vwcs *p)
@@ -188,8 +229,38 @@ extern int vwcs_append(vwcs *p, const wchar_t *s)
 { return vwcs_appendn(p, s, wcslen(s)); }
 );
 
-extern int vwcs_vfappend(vwcs *p, const wchar_t *fmt, va_list ap)
+extern int vwcs_vappendf(vwcs *p, const wchar_t *fmt, va_list ap)
      vwcs_INLINEBODY
 (
-{ return vwcs_vfinsert(p, vwcs_len(p), fmt, ap); }
+{ return vwcs_vinsertf(p, vwcs_len(p), fmt, ap); }
 );
+
+int vwcs_appendvin(vwcs *p, const vwcs *q, size_t qi, size_t qn)
+{
+  return vwcs_insertvin(p, vwcs_len(p), q, qi, qn);
+}
+
+int vwcs_appendvrn(vwcs *p, const vwcs *q, size_t qi, size_t qn)
+{
+  return vwcs_insertvrn(p, vwcs_len(p), q, qi, qn);
+}
+
+int vwcs_appendvi(vwcs *p, const vwcs *q, size_t qi)
+{
+  return vwcs_insertvi(p, vwcs_len(p), q, qi);
+}
+
+int vwcs_appendvn(vwcs *p, const vwcs *q, size_t qn)
+{
+  return vwcs_insertvn(p, vwcs_len(p), q, qn);
+}
+
+int vwcs_appendvr(vwcs *p, const vwcs *q, size_t qi)
+{
+  return vwcs_insertvr(p, vwcs_len(p), q, qi);
+}
+
+int vwcs_appendv(vwcs *p, const vwcs *q)
+{
+  return vwcs_insertv(p, vwcs_len(p), q);
+}

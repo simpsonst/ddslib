@@ -52,14 +52,28 @@ extern "C" {
   void vstr_compact(vstr *);
   int vstr_term(vstr *);
   char *vstr_splice(vstr *, size_t index, size_t n);
-  int vstr_finsert(vstr *, size_t index, const char *fmt, ...);
-  int vstr_vfinsert(vstr *, size_t index, const char *fmt, va_list ap);
+  int vstr_insertf(vstr *, size_t index, const char *fmt, ...);
+  int vstr_vinsertf(vstr *, size_t index, const char *fmt, va_list ap);
   int vstr_insertn(vstr *, size_t index, const char *, size_t);
+  int vstr_insertvin(vstr *p, size_t index,
+		     const vstr *q, size_t qi, size_t qn);
+  int vstr_insertvrn(vstr *p, size_t index,
+		     const vstr *q, size_t qi, size_t qn);
+  int vstr_insertvi(vstr *p, size_t index, const vstr *q, size_t qi);
+  int vstr_insertvn(vstr *p, size_t index, const vstr *q, size_t qn);
+  int vstr_insertvr(vstr *p, size_t index, const vstr *q, size_t qi);
+  int vstr_insertv(vstr *p, size_t index, const vstr *q);
   int vstr_elide(vstr *, size_t index, size_t);
-  int vstr_fappend(vstr *p, const char *fmt, ...);
+  int vstr_appendf(vstr *p, const char *fmt, ...);
+  int vstr_appendvin(vstr *p, const vstr *q, size_t qi, size_t qn);
+  int vstr_appendvrn(vstr *p, const vstr *q, size_t qi, size_t qn);
+  int vstr_appendvi(vstr *p, const vstr *q, size_t qi);
+  int vstr_appendvn(vstr *p, const vstr *q, size_t qn);
+  int vstr_appendvr(vstr *p, const vstr *q, size_t qi);
+  int vstr_appendv(vstr *p, const vstr *q);
 
-  vstr_inline int vstr_vfappend(vstr *p, const char *fmt, va_list ap) {
-    return vstr_vfinsert(p, vstr_len(p), fmt, ap);
+  vstr_inline int vstr_vappendf(vstr *p, const char *fmt, va_list ap) {
+    return vstr_vinsertf(p, vstr_len(p), fmt, ap);
   }
 
   vstr_inline int vstr_insert(vstr *p, size_t index, const char *s) {
