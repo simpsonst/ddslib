@@ -44,11 +44,15 @@ extern "C" {
     long double real;
   } htab_obj;
 
+  typedef enum {
+    htab_OKAY, htab_REPLACED, htab_ERROR
+  } htab_rplc;
+
   typedef struct htab_str *htab;
 
   htab htab_open(size_t n, void *,
 		 size_t (*hash)(void *, htab_const),
-		 int (*cmp)(void *, htab_const, htab_obj),
+		 int (*cmp)(void *, htab_const, htab_const),
 		 htab_obj (*copy_key)(void *ctxt, htab_const),
 		 htab_obj (*copy_value)(void *ctxt, htab_const),
 		 void (*release_key)(void *ctxt, htab_obj),
@@ -60,12 +64,22 @@ extern "C" {
   void htab_apply(htab, void *,
 		  htab_apprc (*op)(void *, htab_const, htab_obj));
 
+  // Returns true if found.
   _Bool htab_get(htab, htab_const, htab_obj *);
-  _Bool htab_pop(htab, htab_const, htab_obj *);
-  _Bool htab_replace(htab, htab_const, htab_obj *, htab_obj val);
-  _Bool htab_put(htab, htab_const, htab_obj val);
-  _Bool htab_del(htab, htab_const);
 
+  // Returns true if found.
+  _Bool htab_pop(htab, htab_const, htab_obj *);
+
+  htab_rplc htab_rpl(htab, htab_const, htab_obj *, htab_const val);
+
+  // Returns true if successful.
+  _Bool htab_put(htab, htab_const, htab_const val);
+
+  // Returns true if found.
+#define htab_tst(T,K) htab_get((T),(K),0)
+
+  // Returns true if found.
+#define htab_del(T,K) htab_pop((T),(K),0)
 
 #if __STDC_VERSION__ < 199901L
   /* Wrapper functions are as usual. */
@@ -78,7 +92,7 @@ extern "C" {
 			    KEY_MEMBER, VALUE_MEMBER, NULL_VALUE)
 
 #elif defined __GNUC__
-  /* GCC has wierd semantics for inlines. */
+  /* GCC has wierd linkage for inlines. */
 #define htab_DECL(SUFFIX, KEY_TYPE, VALUE_TYPE, \
                   KEY_MEMBER, VALUE_MEMBER, NULL_VALUE) \
 		  htab_IMPL(SUFFIX, KEY_TYPE, VALUE_TYPE, extern inline, \
@@ -120,16 +134,11 @@ extern "C" {
                                  KEY_TYPE key, VALUE_TYPE val) { \
     return htab_put(self, \
                     (htab_const) { .KEY_MEMBER = key }, \
-                    (htab_obj) { .VALUE_MEMBER = val }); \
+                    (htab_const) { .VALUE_MEMBER = val }); \
   } \
  \
-  STORAGE VALUE_TYPE htab_replace##SUFFIX(htab self, \
-                                          KEY_TYPE key, VALUE_TYPE val) { \
-    htab_obj oldval; \
-    if (htab_replace(self, (htab_const) { .KEY_MEMBER = key }, &oldval, \
-        (htab_obj) { .VALUE_MEMBER = val })) \
-      return oldval.VALUE_MEMBER; \
-    return NULL_VALUE; \
+  STORAGE _Bool htab_tst##SUFFIX(htab self, KEY_TYPE key) { \
+    return htab_tst(self, (htab_const) { .KEY_MEMBER = key }); \
   } \
  \
   STORAGE _Bool htab_del##SUFFIX(htab self, KEY_TYPE key) { \
@@ -141,8 +150,7 @@ extern "C" {
   STORAGE VALUE_TYPE htab_pop##SUFFIX(htab self, KEY_TYPE key); \
   STORAGE _Bool htab_put##SUFFIX(htab self, \
                                  KEY_TYPE key, VALUE_TYPE val); \
-  STORAGE VALUE_TYPE htab_replace##SUFFIX(htab self, \
-                                          KEY_TYPE key, VALUE_TYPE val); \
+  STORAGE _Bool htab_tst##SUFFIX(htab self, KEY_TYPE key); \
   STORAGE _Bool htab_del##SUFFIX(htab self, KEY_TYPE key)
 
   htab_DECL(sp, const char *, void *, pointer, pointer, NULL);
@@ -157,8 +165,8 @@ extern "C" {
 
   size_t htab_hash_str(void *, htab_const);
   size_t htab_hash_wcs(void *, htab_const);
-  int htab_cmp_str(void *, htab_const, htab_obj);
-  int htab_cmp_wcs(void *, htab_const, htab_obj);
+  int htab_cmp_str(void *, htab_const, htab_const);
+  int htab_cmp_wcs(void *, htab_const, htab_const);
   htab_obj htab_copy_str(void *ctxt, htab_const);
   htab_obj htab_copy_wcs(void *ctxt, htab_const);
   void htab_release_free(void *, htab_obj key);

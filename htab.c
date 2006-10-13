@@ -35,7 +35,7 @@ struct htab_str {
   size_t len;
   void *ctxt;
   size_t (*hash)(void *, htab_const);
-  int (*cmp)(void *, htab_const, htab_obj);
+  int (*cmp)(void *, htab_const, htab_const);
   htab_obj (*copy_key)(void *ctxt, htab_const);
   htab_obj (*copy_value)(void *ctxt, htab_const);
   void (*release_key)(void *ctxt, htab_obj);
@@ -50,7 +50,7 @@ struct entry {
 
 htab htab_open(size_t n, void *ctxt,
 	       unsigned (*hash)(void *, htab_const),
-	       int (*cmp)(void *, htab_const, htab_obj),
+	       int (*cmp)(void *, htab_const, htab_const),
 	       htab_obj (*copy_key)(void *ctxt, htab_const),
 	       htab_obj (*copy_value)(void *ctxt, htab_const),
 	       void (*release_key)(void *ctxt, htab_obj),
@@ -118,12 +118,12 @@ size_t htab_hash_wcs(void *ctxt, htab_const key)
   return r;
 }
 
-int htab_cmp_str(void *ctxt, htab_const a, htab_obj b)
+int htab_cmp_str(void *ctxt, htab_const a, htab_const b)
 {
   return strcmp(a.pointer, b.pointer);
 }
 
-int htab_cmp_wcs(void *ctxt, htab_const a, htab_obj b)
+int htab_cmp_wcs(void *ctxt, htab_const a, htab_const b)
 {
   return wcscmp(a.pointer, b.pointer);
 }
@@ -159,7 +159,7 @@ static inline struct entry **find_ptr(htab self, htab_const key)
   size_t hv = (*self->hash)(self->ctxt, key);
   hv %= self->len;
   res = &self->base[hv];
-  while (*res && (*self->cmp)(self->ctxt, key, (*res)->key))
+  while (*res && (*self->cmp)(self->ctxt, key, *(htab_const *) &(*res)->key))
     res = &(*res)->next;
   return res;
 }
@@ -176,7 +176,11 @@ _Bool htab_pop(htab self, htab_const key, htab_obj *old)
 {
   struct entry *e, **pos = find_ptr(self, key);
   if (!pos || !*pos) return false;
-  *old = (*pos)->value;
+  if (old) {
+    *old = (*pos)->value;
+  } else {
+    (*self->release_value)(self->ctxt, (*pos)->value);
+  }
   e = *pos;
   *pos = e->next;
   if (self->release_key)
@@ -184,7 +188,7 @@ _Bool htab_pop(htab self, htab_const key, htab_obj *old)
   return true;
 }
 
-_Bool htab_replace(htab self, htab_const key, htab_obj *old, htab_obj val)
+htab_rplc htab_rpl(htab self, htab_const key, htab_obj *old, htab_const val)
 {
   struct entry **pos = find_ptr(self, key);
   _Bool r = *pos;
@@ -196,38 +200,32 @@ _Bool htab_replace(htab self, htab_const key, htab_obj *old, htab_obj val)
   } else {
     *pos = malloc(sizeof **pos);
     if (!*pos)
-      return false;
+      return htab_ERROR;
     (*pos)->next = NULL;
     if (self->copy_key)
       (*pos)->key = (*self->copy_key)(self->ctxt, key);
     else {
-      assert(sizeof key == sizeof &(*pos)->key);
+      assert(sizeof key == sizeof (*pos)->key);
       memcpy(&(*pos)->key, &key, sizeof key);
     }
   }
   if (self->copy_value)
-    (*pos)->value = (*self->copy_value)(self->ctxt, *(htab_const *) &val);
-  else
-    (*pos)->value = val;
-  return r;
+    (*pos)->value = (*self->copy_value)(self->ctxt, val);
+  else {
+    assert(sizeof val == sizeof (*pos)->value);
+    memcpy(&(*pos)->value, &val, sizeof val);
+  }
+  return r ? htab_REPLACED : htab_OKAY;
 }
 
-_Bool htab_put(htab self, htab_const key, htab_obj val)
+_Bool htab_put(htab self, htab_const key, htab_const val)
 {
-  htab_obj oldval;
-  _Bool r = htab_replace(self, key, &oldval, val);
-  if (r && self->release_value)
-    (*self->release_value)(self->ctxt, oldval);
-  return r;
-}
-
-_Bool htab_del(htab self, htab_const key)
-{
-  htab_obj val;
-  _Bool r = htab_pop(self, key, &val);
-  if (r && self->release_value)
-    (*self->release_value)(self->ctxt, val);
-  return r;
+  switch (htab_rpl(self, key, NULL, val)) {
+  case htab_ERROR:
+    return false;
+  default:
+    return true;
+  }
 }
 
 void htab_apply(htab self, void *ctxt,
