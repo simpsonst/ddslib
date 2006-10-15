@@ -48,9 +48,14 @@ extern "C" {
 
   vstr_inline char *vstr_get(const vstr *p) { return p->base; }
   vstr_inline size_t vstr_len(const vstr *p) { return p->len; }
+  vstr_inline void vstr_cancel(vstr *p) { p->len = 0; }
+
   void vstr_cancel(vstr *);
   void vstr_compact(vstr *);
   int vstr_term(vstr *);
+  int vstr_unterm(vstr *);
+  int vstr_setcap(vstr *p, size_t nc);
+  int vstr_ensure(vstr *p, size_t cap);
   char *vstr_splice(vstr *, size_t index, size_t n);
   int vstr_insertf(vstr *, size_t index, const char *fmt, ...);
   int vstr_vinsertf(vstr *, size_t index, const char *fmt, va_list ap);
@@ -63,7 +68,7 @@ extern "C" {
   int vstr_insertvn(vstr *p, size_t index, const vstr *q, size_t qn);
   int vstr_insertvr(vstr *p, size_t index, const vstr *q, size_t qi);
   int vstr_insertv(vstr *p, size_t index, const vstr *q);
-  int vstr_elide(vstr *, size_t index, size_t);
+  void vstr_elide(vstr *, size_t index, size_t);
   int vstr_appendf(vstr *p, const char *fmt, ...);
   int vstr_appendvin(vstr *p, const vstr *q, size_t qi, size_t qn);
   int vstr_appendvrn(vstr *p, const vstr *q, size_t qi, size_t qn);

@@ -47,9 +47,14 @@ extern "C" {
 
   vwcs_inline wchar_t *vwcs_get(const vwcs *p) { return p->base; }
   vwcs_inline size_t vwcs_len(const vwcs *p) { return p->len; }
+  vwcs_inline void vwcs_cancel(vwcs *p) { p->len = 0; }
+
   void vwcs_cancel(vwcs *);
   void vwcs_compact(vwcs *);
   int vwcs_term(vwcs *p);
+  int vwcs_unterm(vwcs *);
+  int vwcs_setcap(vwcs *p, size_t nc);
+  int vwcs_ensure(vwcs *p, size_t cap);
   wchar_t *vwcs_splice(vwcs *, size_t index, size_t n);
   int vwcs_insertf(vwcs *, size_t index, const wchar_t *fmt, ...);
   int vwcs_vinsertf(vwcs *, size_t index, const wchar_t *fmt, va_list ap);
@@ -62,7 +67,7 @@ extern "C" {
   int vwcs_insertvn(vwcs *p, size_t index, const vwcs *q, size_t qn);
   int vwcs_insertvr(vwcs *p, size_t index, const vwcs *q, size_t qi);
   int vwcs_insertv(vwcs *p, size_t index, const vwcs *q);
-  int vwcs_elide(vwcs *, size_t index, size_t);
+  void vwcs_elide(vwcs *, size_t index, size_t);
   int vwcs_appendf(vwcs *p, const wchar_t *fmt, ...);
   int vwcs_appendvin(vwcs *p, const vwcs *q, size_t qi, size_t qn);
   int vwcs_appendvrn(vwcs *p, const vwcs *q, size_t qi, size_t qn);

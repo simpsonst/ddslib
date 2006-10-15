@@ -14,19 +14,19 @@ int main()
 
   rc = vstr_append(&s1, "Happy banana!"), assert(rc == 0);
   rc = vstr_append(&s2, "Slappy bunny."), assert(rc == 0);
-  rc = vstr_insertn(&s1, 6, vstr_get(&s2), vstr_len(&s2)), assert(rc == 0);
+  rc = vstr_insertv(&s1, 6, &s2), assert(rc == 0);
 
   printf("s1 = %.*s\n", (int) vstr_len(&s1), vstr_get(&s1));
 
-  rc = vstr_elide(&s1, 4, 5), assert(rc == 0);
+  vstr_elide(&s1, 4, 5);
 
   printf("s1 = %.*s\n", (int) vstr_len(&s1), vstr_get(&s1));
 
-  rc = vstr_finsert(&s1, 8, "conk %ls here ", L"Degenerate"), assert(rc == 0);
+  rc = vstr_insertf(&s1, 8, "conk %ls here ", L"Degenerate"), assert(rc == 0);
 
   printf("s1 = %.*s\n", (int) vstr_len(&s1), vstr_get(&s1));
 
-  rc = vstr_finsert(&s1, 100, "flangey"), assert(rc == 0);
+  rc = vstr_insertf(&s1, 100, "flangey"), assert(rc == 0);
 
   printf("s1 = %.*s\n", (int) vstr_len(&s1), vstr_get(&s1));
   assert(vstr_get(&s1)[vstr_len(&s1) - 1] != '\0');

@@ -25,21 +25,26 @@
 
 #include "ddslib/vwcs.h"
 
-void vwcs_cancel(vwcs *p)
+void vwcs_reset(vwcs *p)
 {
   free(p->base);
   p->base = NULL;
   p->cap = p->len = 0;
 }
 
+static int setcap(vwcs *p, size_t nc)
+{
+  void *np = realloc(p->base, nc * sizeof(wchar_t));
+  if (!np) return -1;
+  p->base = np;
+  p->cap = nc;
+  return 0;
+}
+
 void vwcs_compact(vwcs *p)
 {
-  if (p->cap > p->len) {
-    void *np = realloc(p->base, p->len * sizeof(wchar_t));
-    if (!np) return;
-    p->base = np;
-    p->cap = p->len;
-  }
+  if (p->cap > p->len)
+    setcap(p, p->len);
 }
 
 wchar_t *vwcs_splice(vwcs *p, size_t index, size_t n)
@@ -47,10 +52,7 @@ wchar_t *vwcs_splice(vwcs *p, size_t index, size_t n)
   if (p->len + n > p->cap) {
     size_t nc = (p->len + n + 3u) / 4u * 5u;
     assert(nc >= p->len + n);
-    void *np = realloc(p->base, nc * sizeof(wchar_t));
-    if (!np) return NULL;
-    p->base = np;
-    p->cap = nc;
+    if (setcap(p, nc) < 0) return NULL;
   }
   if (index > p->len) index = p->len;
   size_t end = index + n;
@@ -59,6 +61,41 @@ wchar_t *vwcs_splice(vwcs *p, size_t index, size_t n)
   p->len += n;
   return p->base + index;
 }
+
+void vwcs_elide(vwcs *p, size_t index, size_t n)
+{
+  if (index >= p->len) return;
+  if (index + n > p->len) n = p->len - index;
+  size_t end = index + n;
+  size_t rem = p->len - end;
+  wmemmove(p->base + index, p->base + end, rem);
+  p->len -= n;
+  if (p->len < p->cap / 4u) {
+    size_t nc = (p->len + 3u) / 4u * 5u;
+    assert(nc >= p->len);
+    assert(setcap(p, nc));
+  }
+}
+
+int vwcs_setcap(vwcs *p, size_t nc)
+{
+  if (nc < p->len) return -1;
+  return setcap(p, nc);
+}
+
+int vwcs_ensure(vwcs *p, size_t cap)
+{
+  if (cap <= p->cap) return 0;
+  return vwcs_setcap(p, cap);
+}
+
+void vwcs_cancel(vwcs *p)
+     vwcs_INLINEBODY
+(
+{
+  p->len = 0;
+}
+);
 
 int vwcs_vinsertf(vwcs *p, size_t index, const wchar_t *fmt, va_list ap)
 {
@@ -130,26 +167,6 @@ int vwcs_insertn(vwcs *p, size_t index, const wchar_t *s, size_t n)
   return 0;
 }
 
-int vwcs_elide(vwcs *p, size_t index, size_t n)
-{
-  if (index >= p->len) return 0;
-  if (index + n > p->len) n = p->len - index;
-  size_t end = index + n;
-  size_t rem = p->len - end;
-  wmemmove(p->base + index, p->base + end, rem);
-  p->len -= n;
-  if (p->len < p->cap / 4u) {
-    size_t nc = (p->len + 3u) / 4u * 5u;
-    assert(nc >= p->len);
-    void *np = realloc(p->base, nc * sizeof(wchar_t));
-    if (np) {
-      p->base = np;
-      p->cap = nc;
-    }
-  }
-  return 0;
-}
-
 int vwcs_insertvin(vwcs *p, size_t index,
 		   const vwcs *q, size_t qi, size_t qn)
 {
@@ -196,6 +213,14 @@ int vwcs_term(vwcs *p)
   if (!p->base) return 0;
   if (p->len == 0 || p->base[p->len - 1] != L'\0')
     if (vwcs_appendn(p, L"", 1) < 0) return -1;
+  return 0;
+}
+
+int vwcs_unterm(vwcs *p)
+{
+  if (!p->base || p->len == 0 || p->base[p->len - 1] != L'\0')
+    return 0;
+  vwcs_elide(p, p->len - 1, 1);
   return 0;
 }
 

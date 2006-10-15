@@ -508,7 +508,7 @@ htab_close(my_table);
 
 
 
-<h3>Hash table insertion</h3>
+<h3>Insertion</h3>
 
 <p>To place an entry in the table, use:</p>
 
@@ -525,7 +525,7 @@ it instead, use:</p>
 <pre class=C>
 htab_obj oldvalue;
 
-switch (htab_rpl(my_table, key, &lt;oldvalue, value)) {
+switch (htab_rpl(my_table, key, &amp;oldvalue, value)) {
 case htab_REPLACED:
   // There was a previous value.
   break;
@@ -539,7 +539,7 @@ case htab_OKAY:
 </pre>
 
 
-<h3>Hash table removal</h3>
+<h3>Removal</h3>
 
 <p>To remove an entry from the table, use:</p>
 
@@ -555,20 +555,20 @@ instead, use:</p>
 
 <pre class=C>
 htab_obj value;
-if (htab_pop(my_table, key, &lt;value)) {
+if (htab_pop(my_table, key, &amp;value)) {
   // There was an old value.
 }
 </pre>
 
 
-<h3>Hash table inspection</h3>
+<h3>Inspection</h3>
 
 <p>You can obtain the value for a specific <code class=C>key</code>
 with:</p>
 
 <pre class=C>
 htab_obj value;
-if (htab_get(my_table, key, &lt;value)) {
+if (htab_get(my_table, key, &amp;value)) {
   // Value found...
 }
 </pre>
@@ -578,7 +578,7 @@ want to test for existence, or use the equivalent <code
 class=C>htab_tst(my_table, key)</code>.</p>
 
 
-<h3>Hash table traversal</h3>
+<h3>Traversal</h3>
 
 <p>To apply a function of the following form:</p>
 
@@ -616,11 +616,11 @@ as requireed:</p>
 interface to the types it actually uses.</p>
 
 <pre class=C>
-<var>V</var> htab_get<var>S</var><var>T</var>(htab self, <var>K</var> key);
-<var>V</var> htab_pop<var>S</var><var>T</var>(htab self, <var>K</var> key);
-_Bool htab_put<var>S</var><var>T</var>(htab self, <var>K</var> key, <var>V</var> val);
-_Bool htab_tst<var>S</var><var>T</var>(htab self, <var>K</var> key);
-_Bool htab_del<var>S</var><var>T</var>(htab self, <var>K</var> key);
+<var>V</var> htab_get<var>S</var><var>T</var>(htab, <var>K</var> key);
+<var>V</var> htab_pop<var>S</var><var>T</var>(htab, <var>K</var> key);
+_Bool htab_put<var>S</var><var>T</var>(htab, <var>K</var> key, <var>V</var> val);
+_Bool htab_tst<var>S</var><var>T</var>(htab, <var>K</var> key);
+_Bool htab_del<var>S</var><var>T</var>(htab, <var>K</var> key);
 </pre>
 
 <p>Each corresponds to one of the native functions already described,
@@ -701,26 +701,46 @@ made null-terminated for compatibility easily.</p>
 
 <p>The APIs for wide-character strings are identical to
 multibyte-character strings, except for changing the prefix <code
-class=C>vstr_</code> to <code class=C>vwcs_</code>.  The rest of this
-documentation describes only the former.</p>
+class=C>vstr_</code> to <code class=C>vwcs_</code>, and <code
+class=C>char</code> to <code class=C>wchar_t</code>.  The rest of this
+documentation describes only the <code class=C>vstr_*</code>
+functions.</p>
 
-<p>A non-zero-initialized variable variable should be initialised with
+<h3>Null state</h3>
+
+<p>A non-zero-initialised variable variable should be initialised with
 <code class=C>vstr_NULL</code>.  In this state, it is safe to destroy.
 To reset to this state, use:</p>
 
 <pre class=C>
 vstr str;
-vstr_cancel(&amp;str);
+vstr_reset(&amp;str);
 </pre>
 
+<h3>Interoperability</h3>
+
 <p>Use <code class=C>vstr_get</code> to obtain the address of the
-first character (or a null pointer in its initial state), and <code
+first character (or a null pointer if in its null state), and <code
 class=C>vstr_len</code> to obtain its length.  For example, to print
 out a string containing no null characters:</p>
 
 <pre class=C>
 printf("%.*s", (int) vstr_len(&amp;str), vstr_get(&amp;str));
 </pre>
+
+<p><code class=C>vstr_term</code> will <em>ensure</em> that the string
+terminates with a null character.  If it already does, the operation
+does nothing.  The <code class=C>vstr_unterm</code> function performs
+the inverse operation.</p>
+
+<pre class=C>
+vstr_term(&amp;str);
+vstr_unterm(&amp;str); // Should always be successful.
+</pre>
+
+<p>They return zero on success or -1 on error.</p>
+
+<h3>Insertions</h3>
 
 <p>To make space for inserting <code class=C>len</code> characters
 starting at position <code class=C>start</code>, use:</p>
@@ -759,7 +779,7 @@ first two arguments are as before: <code class=C>vstr*</code> of the
 string to be modified, and a <code class=C>size_t</code> giving the
 insertion point.  The next argument is then a <code class=C>const
 vstr*</code>, giving the source string.  An <samp>i</samp> or
-<samp>r</samp> in the name indicates that an further <code
+<samp>r</samp> in the name indicates that a further <code
 class=C>size_t</code> is required to specify the start point within
 the source string (<samp>i</samp> means &lsquo;index from the
 start&rsquo;; <samp>r</samp> means &lsquo;index from the end&rsquo;).
@@ -774,14 +794,22 @@ which inserts at the end.</p>
 <p>All the insertion functions and <code class=C>vstr_splice</code>
 return zero on success and -1 on failure.</p>
 
+<h3>Elisions</h3>
+
 <p>To remove several characters, use:</p>
 
 <pre class=C>
 vstr_elide(&amp;str, start, length);
 </pre>
 
-<p>&hellip;which always returns zero, currently.</p>
+<p>To remove all characters without adjusting the capacity, use:</p>
 
+<pre class=C>
+vstr_cancel(&amp;str);
+</pre>
+
+
+<h3>Optimisation</h3>
 
 <p>The following makes the string capacity match the length exactly,
 so it uses the minimum amount of memory:</p>
@@ -790,6 +818,18 @@ so it uses the minimum amount of memory:</p>
 vstr_compact(&amp;str);
 </pre>
 
+<p><code class=C>vstr_setcap</code> tries to set the capacity to the
+specified amount.  <code class=C>vstr_ensure</code> is similar, but
+never reduces the capacity:</p>
+
+<pre class=C>
+vstr_setcap(&amp;str, 100);
+vstr_ensure(&amp;str, 100);
+</pre>
+
+<p>They return 0 on success, and -1 on failure &mdash; either the
+memory could not be allocated, or the string would have been
+truncated.</p>
 
 </body>
 
