@@ -163,9 +163,7 @@ int vstr_appendf(vstr *p, const char *fmt, ...)
 
 int vstr_insertn(vstr *p, size_t index, const char *s, size_t n)
 {
-  printf("%s %d\n", __FILE__, __LINE__), fflush(stdout);
   char *pos = vstr_splice(p, index, n);
-  printf("%s %d\n", __FILE__, __LINE__), fflush(stdout);
   if (!pos) return -1;
   memcpy(pos, s, n);
   return 0;
