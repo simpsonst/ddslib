@@ -61,7 +61,7 @@ htab htab_open(size_t n, void *ctxt,
   htab self = malloc(sizeof *self);
   if (!self) return NULL;
 
-  self->base = malloc(sizeof *self->base * n);
+  self->base = malloc(n * sizeof self->base[0]);
   if (!self->base) {
     free(self);
     return NULL;

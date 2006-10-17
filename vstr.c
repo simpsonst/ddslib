@@ -165,6 +165,8 @@ int vstr_insertn(vstr *p, size_t index, const char *s, size_t n)
 {
   char *pos = vstr_splice(p, index, n);
   if (!pos) return -1;
+  assert((pos - p->base) <= p->cap);
+  assert((pos - p->base) + n <= p->cap);
   memcpy(pos, s, n);
   return 0;
 }

@@ -50,6 +50,7 @@ extern "C" {
   vstr_inline size_t vstr_len(const vstr *p) { return p->len; }
   vstr_inline void vstr_cancel(vstr *p) { p->len = 0; }
 
+  void vstr_reset(vstr *);
   void vstr_cancel(vstr *);
   void vstr_compact(vstr *);
   int vstr_term(vstr *);

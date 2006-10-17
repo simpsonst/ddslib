@@ -22,6 +22,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "ddslib/vwcs.h"
 
@@ -37,6 +38,7 @@ static int setcap(vwcs *p, size_t nc)
   void *np = realloc(p->base, nc * sizeof(wchar_t));
   if (!np) return -1;
   p->base = np;
+  assert(p->len <= p->cap);
   p->cap = nc;
   return 0;
 }
@@ -57,6 +59,10 @@ wchar_t *vwcs_splice(vwcs *p, size_t index, size_t n)
   if (index > p->len) index = p->len;
   size_t end = index + n;
   size_t rem = p->len - index;
+  assert(end <= p->cap);
+  assert(end + rem <= p->cap);
+  assert(index <= p->cap);
+  assert(index + rem <= p->cap);
   wmemmove(p->base + end, p->base + index, rem);
   p->len += n;
   return p->base + index;
@@ -68,6 +74,10 @@ void vwcs_elide(vwcs *p, size_t index, size_t n)
   if (index + n > p->len) n = p->len - index;
   size_t end = index + n;
   size_t rem = p->len - end;
+  assert(index <= p->cap);
+  assert(index + rem <= p->cap);
+  assert(end <= p->cap);
+  assert(end + rem <= p->cap);
   wmemmove(p->base + index, p->base + end, rem);
   p->len -= n;
   if (p->len < p->cap / 4u) {
@@ -120,6 +130,8 @@ int vwcs_vinsertf(vwcs *p, size_t index, const wchar_t *fmt, va_list ap)
 	old = p->base[index + req];
 
       // Now write the characters in.
+      assert((pos - p->base) <= p->cap);
+      assert((pos - p->base) + req + 1 <= p->cap);
       int rc = vswprintf(pos, req + 1, fmt, ap);
       assert(rc >= 0);
 
@@ -163,6 +175,8 @@ int vwcs_insertn(vwcs *p, size_t index, const wchar_t *s, size_t n)
 {
   wchar_t *pos = vwcs_splice(p, index, n);
   if (!pos) return -1;
+  assert((pos - p->base) <= p->cap);
+  assert((pos - p->base) + n <= p->cap);
   wmemcpy(pos, s, n);
   return 0;
 }
