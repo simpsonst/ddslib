@@ -805,7 +805,7 @@ vstr_elide(&amp;str, start, length);
 <p>To remove all characters without adjusting the capacity, use:</p>
 
 <pre class=C>
-vstr_cancel(&amp;str);
+vstr_clear(&amp;str);
 </pre>
 
 <p>This doesn't change the string to a null pointer, although it might

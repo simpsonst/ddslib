@@ -91,7 +91,7 @@ int vstr_ensure(vstr *p, size_t cap)
   return vstr_setcap(p, cap);
 }
 
-void vstr_cancel(vstr *p)
+void vstr_clear(vstr *p)
      vstr_INLINEBODY
 (
 {

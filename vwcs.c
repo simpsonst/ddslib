@@ -99,7 +99,7 @@ int vwcs_ensure(vwcs *p, size_t cap)
   return vwcs_setcap(p, cap);
 }
 
-void vwcs_cancel(vwcs *p)
+void vwcs_clear(vwcs *p)
      vwcs_INLINEBODY
 (
 {
