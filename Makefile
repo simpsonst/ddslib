@@ -27,7 +27,7 @@ ifeq ($(ENABLE_CXX),yes)
 HEADERS += dllist.hh
 endif
 
-ddslib_mod=bheap.o htab.o vstr.o vwcs.o
+ddslib_mod=bheap.o htab.o vstr.o vwcs.o vwcsx.o
 
 testheap_obj=testheap.o bheap.o
 testhash_obj=testhash.o htab.o
@@ -86,7 +86,7 @@ testhash.o: ddslib/htab.h
 testheap.o: ddslib/bheap.h
 testree.o: ddslib/btree.h
 testvstr.o vstr.o: ddslib/vstr.h
-vwcs.o: ddslib/vwcs.h
+vwcs.o vwcsx.o: ddslib/vwcs.h
 
 HEADERS_C=$(filter %.h,$(HEADERS))
 HEADERS_CXX=$(filter %.hh,$(HEADERS))
