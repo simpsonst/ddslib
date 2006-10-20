@@ -109,34 +109,31 @@ int vstr_vinsertf(vstr *p, size_t index, const char *fmt, va_list ap)
   va_copy(ap2, ap);
   req = vsnprintf(NULL, 0, fmt, ap2);
   va_end(ap2);
-  if (req >= 0) {
-    // Do we need to allocate an extra byte at the end for the '\0'
-    // which printf will add?
-    int gap = index >= p->len;
+  if (req < 0) return -1;
 
-    // Try to make that space available.
-    char *pos = vstr_splice(p, index, req + gap);
-    if (pos) {
-      char old = '\0';
-      if (!gap)
-	old = p->base[index + req];
+  // Do we need to allocate an extra byte at the end for the '\0'
+  // which printf will add?
+  int gap = index >= p->len;
 
-      // Now write the characters in.
-      int rc = vsnprintf(pos, req + 1, fmt, ap);
-      assert(rc >= 0);
+  // Try to make that space available.
+  char *pos = vstr_splice(p, index, req + gap);
+  if (!pos) return -1;
 
-      if (gap)
-	// Remove the trailing '\0'.
-	vstr_elide(p, p->len - 1, 1);
-      else
-	// Restore the original character overwritten by the '\0'.
-	p->base[index + req] = old;
-      req = 0;
-    } else
-      req = -1;
-  }
-  va_end(ap);
-  return req;
+  char old = '\0';
+  if (!gap)
+    old = p->base[index + req];
+
+  // Now write the characters in.
+  int rc = vsnprintf(pos, req + 1, fmt, ap);
+  assert(rc >= 0);
+
+  if (gap)
+    // Remove the trailing '\0'.
+    vstr_elide(p, p->len - 1, 1);
+  else
+    // Restore the original character overwritten by the '\0'.
+    p->base[index + req] = old;
+  return 0;
 }
 
 int vstr_insertf(vstr *p, size_t index, const char *fmt, ...)
