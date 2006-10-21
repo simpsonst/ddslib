@@ -232,8 +232,8 @@ void htab_apply(htab self, void *ctxt,
 		htab_apprc (*op)(void *, htab_const, htab_obj))
 {
   for (size_t i = 0; i < self->len; i++) {
-    struct entry *n, *e;
-    for (e = self->base[i]; e && (n = e->next, true); e = n) {
+    struct entry *n, *e, **eh = &self->base[i];
+    for (e = *eh; e && (n = e->next, true); e = n) {
       htab_apprc rc = (*op)(ctxt, *(htab_const *) &e->key, e->value);
       if (rc & htab_REMOVE) {
 	if (self->release_value)
@@ -241,7 +241,9 @@ void htab_apply(htab self, void *ctxt,
 	if (self->release_key)
 	  (*self->release_key)(self->ctxt, e->key);
 	free(e);
-      }
+	*eh = n;
+      } else
+	eh = &e->next;
       if (rc & htab_STOP)
 	return;
     }
