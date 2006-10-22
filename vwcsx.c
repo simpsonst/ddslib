@@ -2,6 +2,8 @@
 
 #include "ddslib/vwcs.h"
 
+#if !defined __riscos && !defined __riscos__
+
 int vwcs_vinsertf(vwcs *p, size_t index, const wchar_t *fmt, va_list ap)
 {
   if (index > p->len) index = p->len;
@@ -69,3 +71,5 @@ extern int vwcs_vappendf(vwcs *p, const wchar_t *fmt, va_list ap)
 (
 { return vwcs_vinsertf(p, vwcs_len(p), fmt, ap); }
 );
+
+#endif
