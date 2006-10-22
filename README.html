@@ -616,9 +616,10 @@ as requireed:</p>
 interface to the types it actually uses.</p>
 
 <pre class=C>
-<var>V</var> htab_get<var>S</var><var>T</var>(htab, <var>K</var> key);
+<var>CV</var> htab_get<var>S</var><var>T</var>(htab, <var>K</var> key);
 <var>V</var> htab_pop<var>S</var><var>T</var>(htab, <var>K</var> key);
-_Bool htab_put<var>S</var><var>T</var>(htab, <var>K</var> key, <var>V</var> val);
+<var>V</var> htab_rpl<var>S</var><var>T</var>(htab, <var>K</var> key, <var>CV</var> val);
+_Bool htab_put<var>S</var><var>T</var>(htab, <var>K</var> key, <var>CV</var> val);
 _Bool htab_tst<var>S</var><var>T</var>(htab, <var>K</var> key);
 _Bool htab_del<var>S</var><var>T</var>(htab, <var>K</var> key);
 </pre>
@@ -628,7 +629,11 @@ except that the <samp>get</samp> and <samp>pop</samp> calls return the
 current/removed value, or a &lsquo;miss&rsquo; value.</p>
 
 <p>The <var>S</var> character indicates the key type <var>K</var>,
-while <var>T</var> corresponds to the value type <var>V</var>.</p>
+while <var>T</var> corresponds to the value types <var>V</var>.
+<var>CV</var> is the unmodifiable version of <var>V</var> &mdash;
+where a <var>CV</var> is returned, the table still holds that value,
+and it should not be released; otherwise, the caller is expected to be
+responsible for releasing it.</p>
 
 <table>
 <thead>
@@ -678,7 +683,8 @@ are defined:</p>
 (for example):</p>
 
 <pre class=C>
-htab_IMPL(<var>suffix</var>, <var>key-type</var>, <var>value-type</var>,
+htab_IMPL(<var>suffix</var>, <var>key-type</var>,
+          <var>value-type</var>, <var>const-value-type</var>,
           static inline, <var>key-member</var>, <var>value-member</vat>,
           <var>&lsquo;miss&rsquo;-value</var>);
 </pre>

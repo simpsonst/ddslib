@@ -131,6 +131,10 @@ int htab_cmp_wcs(void *ctxt, htab_const a, htab_const b)
 htab_obj htab_copy_str(void *ctxt, htab_const in)
 {
   htab_obj out;
+  if (!in.pointer) {
+    out.pointer = NULL;
+    return out;
+  }
   size_t len = strlen(in.pointer);
   out.pointer = malloc(len + 1);
   if (out.pointer)
@@ -141,6 +145,10 @@ htab_obj htab_copy_str(void *ctxt, htab_const in)
 htab_obj htab_copy_wcs(void *ctxt, htab_const in)
 {
   htab_obj out;
+  if (!in.pointer) {
+    out.pointer = NULL;
+    return out;
+  }
   size_t len = wcslen(in.pointer);
   out.pointer = malloc((len + 1) * sizeof(wchar_t));
   if (out.pointer)
@@ -250,13 +258,16 @@ void htab_apply(htab self, void *ctxt,
   }
 }
 
-
-htab_DEFN(sp, const char *, void *, pointer, pointer, NULL);
-htab_DEFN(ss, const char *, char *, pointer, pointer, NULL);
-htab_DEFN(su, const char *, uintmax_t, pointer, unsigned_integer, 0);
-htab_DEFN(wp, const wchar_t *, void *, pointer, pointer, NULL);
-htab_DEFN(pp, const void *, void *, pointer, pointer, NULL);
-htab_DEFN(wu, const wchar_t *, uintmax_t, pointer, unsigned_integer, 0);
-htab_DEFN(ww, const wchar_t *, wchar_t *, pointer, pointer, NULL);
-htab_DEFN(ws, const wchar_t *, char *, pointer, pointer, NULL);
-htab_DEFN(sw, const char *, wchar_t *, pointer, pointer, NULL);
+htab_DEFN(sp, const char *, void *, void *, pointer, pointer, NULL);
+htab_DEFN(ss, const char *, char *, const char *, pointer, pointer, NULL);
+htab_DEFN(wp, const wchar_t *, void *, void *, pointer, pointer, NULL);
+htab_DEFN(ww, const wchar_t *, wchar_t *, const wchar_t *,
+	  pointer, pointer, NULL);
+htab_DEFN(ws, const wchar_t *, char *, const char *, pointer, pointer, NULL);
+htab_DEFN(sw, const char *, wchar_t *, const wchar_t *,
+	  pointer, pointer, NULL);
+htab_DEFN(pp, const void *, void *, void *, pointer, pointer, NULL);
+htab_DEFN(wu, const wchar_t *, uintmax_t, uintmax_t,
+	  pointer, unsigned_integer, 0);
+htab_DEFN(su, const char *, uintmax_t, uintmax_t,
+	  pointer, unsigned_integer, 0);
