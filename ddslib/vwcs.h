@@ -49,6 +49,7 @@ extern "C" {
   vwcs_inline size_t vwcs_len(const vwcs *p) { return p->len; }
   vwcs_inline void vwcs_clear(vwcs *p) { p->len = 0; }
 
+  int vwcs_empty(vwcs *p);
   void vwcs_reset(vwcs *);
   void vwcs_compact(vwcs *);
   int vwcs_term(vwcs *p);

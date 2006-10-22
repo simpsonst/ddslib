@@ -817,6 +817,14 @@ vstr_clear(&amp;str);
 <p>This doesn't change the string to a null pointer, although it might
 be already.</p>
 
+<p>To make an empty, but non-null string, use:</p>
+
+<pre class=C>
+if (vstr_empty(&amp;str) &lt; 0) {
+  // Memory allocation failed.
+}
+</pre>
+
 <h3>Optimisation</h3>
 
 <p>The following makes the string capacity match the length exactly,

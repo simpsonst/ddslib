@@ -35,6 +35,7 @@ void vwcs_reset(vwcs *p)
 
 static int setcap(vwcs *p, size_t nc)
 {
+  if (!nc) nc = 1;
   void *np = realloc(p->base, nc * sizeof(wchar_t));
   if (!np) return -1;
   p->base = np;
@@ -107,8 +108,15 @@ void vwcs_clear(vwcs *p)
 }
 );
 
+int vwcs_empty(vwcs *p)
+{
+  vwcs_clear(p);
+  return p->base ? setcap(p, 1) : 0;
+}
+
 int vwcs_insertn(vwcs *p, size_t index, const wchar_t *s, size_t n)
 {
+  if (!s || !n) return 0;
   wchar_t *pos = vwcs_splice(p, index, n);
   if (!pos) return -1;
   assert(pos - p->base >= 0);

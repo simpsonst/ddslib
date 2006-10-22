@@ -35,6 +35,7 @@ void vstr_reset(vstr *p)
 
 static int setcap(vstr *p, size_t nc)
 {
+  if (!nc) nc = 1;
   void *np = realloc(p->base, nc);
   if (!np) return -1;
   p->base = np;
@@ -158,8 +159,15 @@ int vstr_appendf(vstr *p, const char *fmt, ...)
   return rc;
 }
 
+int vstr_empty(vstr *p)
+{
+  vstr_clear(p);
+  return p->base ? setcap(p, 1) : 0;
+}
+
 int vstr_insertn(vstr *p, size_t index, const char *s, size_t n)
 {
+  if (!s || !n) return 0;
   char *pos = vstr_splice(p, index, n);
   if (!pos) return -1;
   assert(pos - p->base >= 0);
