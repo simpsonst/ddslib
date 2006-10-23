@@ -46,6 +46,8 @@ extern "C" {
 #define vstr_INLINEBODY(B)
 #endif
 
+  int vstr_wcsmblen(const wchar_t *s, size_t len);
+
   vstr_inline char *vstr_get(const vstr *p) { return p->base; }
   vstr_inline size_t vstr_len(const vstr *p) { return p->len; }
   vstr_inline void vstr_clear(vstr *p) { p->len = 0; }

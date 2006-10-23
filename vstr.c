@@ -23,8 +23,27 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <wchar.h>
 
 #include "ddslib/vstr.h"
+
+int vstr_wcsmblen(const wchar_t *s, size_t len)
+{
+  if (!s) return 0;
+  static const mbstate_t null;
+  mbstate_t state = null;
+  char buf[MB_CUR_MAX];
+  int res = 0;
+  while (len > 0) {
+    size_t rc = wcrtomb(buf, *s, &state);
+    if (rc == (size_t) -1)
+      return -1;
+    res += rc;
+    len--;
+    s++;
+  }
+  return res;
+}
 
 void vstr_reset(vstr *p)
 {
