@@ -42,6 +42,9 @@ int vstr_wcsmblen(const wchar_t *s, size_t len)
     len--;
     s++;
   }
+
+  // Return to initial shift state.
+  res += wcrtomb(NULL, L'\0', &state) - 1;
   return res;
 }
 
