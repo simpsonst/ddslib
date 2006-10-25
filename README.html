@@ -13,9 +13,73 @@
 <h1>DDSLib: Dynamic data structures</h1>
 
 
-<p>This is a library of C headers for manipulating miscellaneous dynamic
-data structures.</p>
+<p>This is a library of C headers for manipulating miscellaneous
+dynamic data structures.</p>
 
+<h2>Installation</h2>
+
+<p>To install in <samp>/usr/local</samp>, the usual commands should
+work with the default configuration options:</p>
+
+<pre class="spool">
+$ <kbd>make</kbd>
+$ <kbd>su</kbd>
+# <kbd>make install</kbd>
+</pre>
+
+<p>However, you may want to configure compilation options or install
+in a different location.  You can override the default configuration
+by either:</p>
+
+<ul>
+
+<li><p>specifying variables on the command line, or by</p></li>
+
+<li><p>placing them in a file called <samp>ddslib-env.mk</samp> in either:</p>
+
+<ul>
+
+<li><p>the <samp>ddslib</samp> directory, or in</p></li>
+
+<li><p>the path that <samp>make</samp> searches
+(e.g. <samp>/usr/local/include</samp> or <samp>/usr/include</samp>, or
+any extra directories you have configured).</p></li>
+
+</ul></li>
+
+</ul>
+
+<p>For example, you could have this file placed in
+<samp>~/.install/include-config</samp>:</p>
+
+<pre class="makefile">
+# example ddslib-env.mk
+
+# C options, language variant and optimisations
+CC=gcc
+CFLAGS += -std=gnu99
+CFLAGS += -O2
+
+# C++ options, language variant and optimisations
+CXX=g++
+CXXFLAGS += -std=gnu++98
+CXXFLAGS += -O2
+
+# Place to install the library
+PREFIX=$(HOME)/.install
+
+# To disable the compilation and installation of
+# problematic headers if you don't have a full C99
+# implementation:
+#ENABLE_C99=no
+
+# Similarly for C++:
+#ENABLE_CXX=no
+</pre>
+
+<p>&hellip;and the environment variable <samp>MAKEFLAGS</samp> set to
+<samp>"-I${HOME}/.install/include-config"</samp>.  When you run GNU
+<samp>make</samp>, the settings above override the defaults.</p>
 
 <h2 id="lists">Doubly-linked lists</h2>
 
