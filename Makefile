@@ -11,6 +11,7 @@ CP=cp
 RISCOS_ZIP=zip
 ARCHIVE_DIR=$(HOME)
 ENABLE_CXX=yes
+ENABLE_C99=yes
 
 # INSTALL_PATH is deprecated
 INSTALL_PATH=/usr/local
@@ -18,16 +19,24 @@ PREFIX=$(INSTALL_PATH)
 
 -include ddslib-env.mk
 
-HEADERS=dllist.h btree.h bheap.h internal.h htab.h vstr.h vwcs.h
+HEADERS=dllist.h btree.h bheap.h internal.h
 COMPAT_HEADERS=dllist.h btree.h bheap.h
 SOURCES=bheap.c
 LIBRARIES=ddslib
+
+ifeq ($(ENABLE_C99),yes)
+HEADERS += htab.h vstr.h vwcs.h
+endif
 
 ifeq ($(ENABLE_CXX),yes)
 HEADERS += dllist.hh
 endif
 
-ddslib_mod=bheap.o htab.o vstr.o vwcs.o vwcsx.o
+ddslib_mod=bheap.o
+
+ifeq ($(ENABLE_C99),yes)
+ddslib_mod += htab.o vstr.o vwcs.o vwcsx.o
+endif
 
 testheap_obj=testheap.o bheap.o
 testhash_obj=testhash.o htab.o
