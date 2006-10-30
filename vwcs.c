@@ -69,6 +69,18 @@ wchar_t *vwcs_splice(vwcs *p, size_t index, size_t n)
   return p->base + index;
 }
 
+void vwcs_truncate(vwcs *p, size_t index)
+{
+  if (index >= p->len) return;
+  p->len = index;
+  if (p->len < p->cap / 4u) {
+    size_t nc = (p->len + 3u) / 4u * 5u;
+    assert(nc >= p->len);
+    if (!setcap(p, nc))
+      assert(0);
+  }
+}
+
 void vwcs_elide(vwcs *p, size_t index, size_t n)
 {
   if (index >= p->len) return;
@@ -84,7 +96,8 @@ void vwcs_elide(vwcs *p, size_t index, size_t n)
   if (p->len < p->cap / 4u) {
     size_t nc = (p->len + 3u) / 4u * 5u;
     assert(nc >= p->len);
-    assert(setcap(p, nc));
+    if (!setcap(p, nc))
+      assert(0);
   }
 }
 
