@@ -52,6 +52,7 @@ extern "C" {
   vstr_inline size_t vstr_len(const vstr *p) { return p->len; }
   vstr_inline void vstr_clear(vstr *p) { p->len = 0; }
 
+  char *vstr_extract(vstr *p);
   int vstr_empty(vstr *p);
   void vstr_reset(vstr *);
   void vstr_compact(vstr *);

@@ -908,6 +908,12 @@ the format string and arguments straight to that.</p>
 vstr_elide(&amp;str, start, length);
 </pre>
 
+<p>To remove the tail of a string, use:</p>
+
+<pre class=C>
+vstr_truncate(&amp;str, start);
+</pre>
+
 <p>To remove all characters without adjusting the capacity, use:</p>
 
 <pre class=C>
@@ -946,6 +952,22 @@ vstr_ensure(&amp;str, 100);
 <p>They return 0 on success, and -1 on failure &mdash; either the
 memory could not be allocated, or the string would have been
 truncated.</p>
+
+<h3>Extraction</h3>
+
+<p>If you don't want your string to be managed by the library any
+more, you can extract it with:</p>
+
+<pre class=C>
+char *ptr = vstr_extract(&amp;str);
+</pre>
+
+<p><code class=C>str</code> becomes <code class=C>vstr_NULL</code>,
+but <code class=C>ptr</code> now points to a dynamically allocated
+string suitable for use with <code class=C>free</code> or <code
+class=C>realloc</code>.  <code class=C>vstr_extract</code> does not
+null-terminate the string, but does compact it, before returning
+it.</p>
 
 </body>
 

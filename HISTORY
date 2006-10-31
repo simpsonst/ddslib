@@ -1,4 +1,4 @@
-Added truncate functions to vstr and vwcs.
+Added truncate and extract functions to vstr and vwcs.
 
 
 2006-10-25 1.2.0

@@ -69,6 +69,15 @@ wchar_t *vwcs_splice(vwcs *p, size_t index, size_t n)
   return p->base + index;
 }
 
+wchar_t *vwcs_extract(vwcs *p)
+{
+  vwcs_compact(p);
+  wchar_t *r = p->base;
+  p->len = p->cap = 0;
+  p->base = NULL;
+  return r;
+}
+
 void vwcs_truncate(vwcs *p, size_t index)
 {
   if (index >= p->len) return;
