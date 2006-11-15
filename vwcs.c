@@ -136,6 +136,18 @@ int vwcs_empty(vwcs *p)
   return p->base ? setcap(p, 1) : 0;
 }
 
+int vwcs_insertc(vwcs *p, size_t index, wchar_t c, size_t n)
+{
+  if (!n) return 0;
+  wchar_t *pos = vwcs_splice(p, index, n);
+  if (!pos) return -1;
+  assert(pos - p->base >= 0);
+  assert((size_t) (pos - p->base) <= p->cap);
+  assert((size_t) (pos - p->base) + n <= p->cap);
+  wmemset(pos, c, n);
+  return 0;
+}
+
 int vwcs_insertn(vwcs *p, size_t index, const wchar_t *s, size_t n)
 {
   if (!s || !n) return 0;
@@ -227,6 +239,12 @@ extern int vwcs_appendn(vwcs *p, const wchar_t *s, size_t n)
      vwcs_INLINEBODY
 (
 { return vwcs_insertn(p, vwcs_len(p), s, n); }
+);
+
+extern int vwcs_appendc(vwcs *p, wchar_t c, size_t n)
+     vwcs_INLINEBODY
+(
+{ return vwcs_insertc(p, vwcs_len(p), c, n); }
 );
 
 extern int vwcs_append(vwcs *p, const wchar_t *s)

@@ -825,6 +825,12 @@ vstr_splice(&amp;str, start, len);
 vstr_insertn(&amp;str, start, "Hello", 5);
 </pre>
 
+<p>To insert a single character several times:</p>
+
+<pre class=C>
+vstr_insertn(&amp;str, start, 'H', 5);
+</pre>
+
 <p>To insert a null-terminated string, excluding the null:</p>
 
 <pre class=C>
@@ -859,7 +865,8 @@ specifying the maximum number of characters to be copied.</p>
 <p>All insertion functions clamp the insertion point to within the
 original array.  For each <code class=C>vstr_*insert*</code> function,
 there is a corresponding <code class=C>vstr_*append*</code> function
-which inserts at the end.</p>
+which inserts at the end &mdash; the second argument to the insertion
+function, the string index, is absent.</p>
 
 <p>All the insertion functions and <code class=C>vstr_splice</code>
 return zero on success and -1 on failure.</p>

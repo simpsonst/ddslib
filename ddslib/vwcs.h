@@ -60,6 +60,7 @@ extern "C" {
   wchar_t *vwcs_splice(vwcs *, size_t index, size_t n);
   int vwcs_insertf(vwcs *, size_t index, const wchar_t *fmt, ...);
   int vwcs_vinsertf(vwcs *, size_t index, const wchar_t *fmt, va_list ap);
+  int vwcs_insertc(vwcs *, size_t index, wchar_t, size_t);
   int vwcs_insertn(vwcs *, size_t index, const wchar_t *, size_t);
   int vwcs_insertvin(vwcs *p, size_t index,
 		     const vwcs *q, size_t qi, size_t qn);
@@ -89,6 +90,10 @@ extern "C" {
 
   vwcs_inline int vwcs_appendn(vwcs *p, const wchar_t *s, size_t n) {
     return vwcs_insertn(p, vwcs_len(p), s, n);
+  }
+
+  vwcs_inline int vwcs_appendc(vwcs *p, wchar_t c, size_t n) {
+    return vwcs_insertc(p, vwcs_len(p), c, n);
   }
 
   vwcs_inline int vwcs_append(vwcs *p, const wchar_t *s) {

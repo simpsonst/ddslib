@@ -209,6 +209,18 @@ int vstr_empty(vstr *p)
   return p->base ? setcap(p, 1) : 0;
 }
 
+int vstr_insertc(vstr *p, size_t index, int c, size_t n)
+{
+  if (!n) return 0;
+  char *pos = vstr_splice(p, index, n);
+  if (!pos) return -1;
+  assert(pos - p->base >= 0);
+  assert((size_t) (pos - p->base) <= p->cap);
+  assert((size_t) (pos - p->base) + n <= p->cap);
+  memset(pos, c, n);
+  return 0;
+}
+
 int vstr_insertn(vstr *p, size_t index, const char *s, size_t n)
 {
   if (!s || !n) return 0;
@@ -300,6 +312,12 @@ extern int vstr_appendn(vstr *p, const char *s, size_t n)
      vstr_INLINEBODY
 (
 { return vstr_insertn(p, vstr_len(p), s, n); }
+);
+
+extern int vstr_appendc(vstr *p, int c, size_t n)
+     vstr_INLINEBODY
+(
+{ return vstr_insertc(p, vstr_len(p), c, n); }
 );
 
 extern int vstr_append(vstr *p, const char *s)

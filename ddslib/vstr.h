@@ -63,6 +63,7 @@ extern "C" {
   char *vstr_splice(vstr *, size_t index, size_t n);
   int vstr_insertf(vstr *, size_t index, const char *fmt, ...);
   int vstr_vinsertf(vstr *, size_t index, const char *fmt, va_list ap);
+  int vstr_insertc(vstr *, size_t index, int, size_t);
   int vstr_insertn(vstr *, size_t index, const char *, size_t);
   int vstr_insertvin(vstr *p, size_t index,
 		     const vstr *q, size_t qi, size_t qn);
@@ -92,6 +93,10 @@ extern "C" {
 
   vstr_inline int vstr_appendn(vstr *p, const char *s, size_t n) {
     return vstr_insertn(p, vstr_len(p), s, n);
+  }
+
+  vstr_inline int vstr_appendc(vstr *p, int c, size_t n) {
+    return vstr_insertc(p, vstr_len(p), c, n);
   }
 
   vstr_inline int vstr_append(vstr *p, const char *s) {
