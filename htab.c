@@ -83,6 +83,7 @@ htab htab_open(size_t n, void *ctxt,
 
 void htab_close(htab self)
 {
+  if (!self) return;
   size_t i;
   for (i = 0; i < self->len; i++) {
     struct entry *n, *e;
