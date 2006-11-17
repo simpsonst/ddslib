@@ -1,5 +1,8 @@
-Added truncate, extract and character-insertion functions to vstr and
-vwcs.
+Added (r)truncate, relide, (r)elect, extract and character-insertion
+functions to vstr and vwcs.
+
+Made htab_close(NULL) a no-op.
+
 
 2006-10-25 1.2.0
 

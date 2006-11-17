@@ -87,9 +87,8 @@ char *vstr_splice(vstr *p, size_t index, size_t n)
   return p->base + index;
 }
 
-void vstr_truncate(vstr *p, size_t index)
+static void truncate(vstr *p, size_t index)
 {
-  if (index >= p->len) return;
   p->len = index;
   if (p->len < p->cap / 4u) {
     size_t nc = (p->len + 3u) / 4u * 5u;
@@ -97,6 +96,17 @@ void vstr_truncate(vstr *p, size_t index)
     if (!setcap(p, nc))
       assert(0);
   }
+}
+
+void vstr_truncate(vstr *p, size_t index)
+{
+  if (index < p->len)
+    truncate(p, index);
+}
+
+void vstr_rtruncate(vstr *p, size_t index)
+{
+  truncate(p, index < p->len ? p->len - index : 0);
 }
 
 char *vstr_extract(vstr *p)
@@ -108,10 +118,8 @@ char *vstr_extract(vstr *p)
   return r;
 }
 
-void vstr_elide(vstr *p, size_t index, size_t n)
+static void elide(vstr *p, size_t index, size_t n)
 {
-  if (index >= p->len) return;
-  if (index + n > p->len) n = p->len - index;
   size_t end = index + n;
   size_t rem = p->len - end;
   memmove(p->base + index, p->base + end, rem);
@@ -122,6 +130,52 @@ void vstr_elide(vstr *p, size_t index, size_t n)
     if (!setcap(p, nc))
       assert(0);
   }
+}
+
+void vstr_elide(vstr *p, size_t index, size_t n)
+{
+  if (index >= p->len) return;
+  if (index + n > p->len) n = p->len - index;
+  elide(p, index, n);
+}
+
+void vstr_relide(vstr *p, size_t index, size_t n)
+{
+  if (index >= p->len) return;
+  if (index + n > p->len) n = p->len - index;
+  elide(p, p->len - index - n, n);
+}
+
+static void elect(vstr *p, size_t index, size_t n)
+{
+  memmove(p->base, p->base + index, n);
+  truncate(p, n);
+}
+
+void vstr_elect(vstr *p, size_t index, size_t n)
+{
+  if (index >= p->len) {
+    vstr_clear(p);
+    return;
+  }
+  if (index + n >= p->len) {
+    elide(p, 0, index);
+    return;
+  }
+  elect(p, index, n);
+}
+
+void vstr_relect(vstr *p, size_t index, size_t n)
+{
+  if (index >= p->len) {
+    vstr_clear(p);
+    return;
+  }
+  if (index + n >= p->len) {
+    truncate(p, p->len - index);
+    return;
+  }
+  elect(p, p->len - index - n, n);
 }
 
 int vstr_setcap(vstr *p, size_t nc)
@@ -286,7 +340,7 @@ int vstr_unterm(vstr *p)
 {
   if (p->len == 0 || p->base[p->len - 1] != '\0')
     return 0;
-  vstr_elide(p, p->len - 1, 1);
+  truncate(p, p->len - 1);
   return 0;
 }
 

@@ -570,6 +570,7 @@ to configuration functions.</p>
 htab_close(my_table);
 </pre>
 
+<p><code class=C>htab_close(NULL)</code> has no effect.</p>
 
 
 <h3>Insertion</h3>
@@ -828,7 +829,7 @@ vstr_insertn(&amp;str, start, "Hello", 5);
 <p>To insert a single character several times:</p>
 
 <pre class=C>
-vstr_insertn(&amp;str, start, 'H', 5);
+vstr_insertc(&amp;str, start, 'H', 5);
 </pre>
 
 <p>To insert a null-terminated string, excluding the null:</p>
@@ -907,19 +908,44 @@ vstr_insertf(&amp;str, start, "%.*ls", vstr_wcsmblen(wbase, wlen), wbase);
 related functions, as <code class=C>vstr_insertf</code> simply passes
 the format string and arguments straight to that.</p>
 
-<h3>Elisions</h3>
+<h3>Removals</h3>
 
 <p>To remove several characters, use:</p>
 
 <pre class=C>
-vstr_elide(&amp;str, start, length);
+// Remove characters 7, 8, 9, 10.
+vstr_elide(&amp;str, 7, 3);
 </pre>
 
-<p>To remove the tail of a string, use:</p>
+<p><code class=C>vstr_relide</code> is similar, but indexed from the
+end, and reaching towards the start.  For example:</p>
 
 <pre class=C>
-vstr_truncate(&amp;str, start);
+// Remove the last seven characters.
+vstr_relide(&amp;str, 0, 7);
 </pre>
+
+<p><code class=C>vstr_elect</code> and <code
+class=C>vstr_relect</code> provide the complements of <code
+class=C>vstr_elide</code> and <code class=C>vstr_relide</code>
+respectively.  They remove the head and tail of the string, leaving
+the specified centre.  For example:</p>
+
+<pre class=C>
+// Keep the last seven characters.
+vstr_relect(&amp;str, 0, 7);
+</pre>
+
+<p>To ensure that the string is no longer than a certain number of
+characters by removing the tail, use:</p>
+
+<pre class=C>
+vstr_truncate(&amp;str, len);
+</pre>
+
+<p>It has no effect if the string is already that short, or more so.
+<code class=C>vstr_rtruncate</code> is similar, but indexed from the
+end.</p>
 
 <p>To remove all characters without adjusting the capacity, use:</p>
 
@@ -948,8 +974,9 @@ vstr_compact(&amp;str);
 </pre>
 
 <p><code class=C>vstr_setcap</code> tries to set the capacity to the
-specified amount.  <code class=C>vstr_ensure</code> is similar, but
-never reduces the capacity:</p>
+specified amount, but won't truncate the string.  <code
+class=C>vstr_ensure</code> is similar, but never reduces the
+capacity:</p>
 
 <pre class=C>
 vstr_setcap(&amp;str, 100);

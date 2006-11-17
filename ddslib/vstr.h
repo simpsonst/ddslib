@@ -74,7 +74,11 @@ extern "C" {
   int vstr_insertvr(vstr *p, size_t index, const vstr *q, size_t qi);
   int vstr_insertv(vstr *p, size_t index, const vstr *q);
   void vstr_elide(vstr *, size_t index, size_t);
+  void vstr_relide(vstr *, size_t index, size_t);
   void vstr_truncate(vstr *, size_t index);
+  void vstr_rtruncate(vstr *, size_t index);
+  void vstr_elect(vstr *p, size_t index, size_t n);
+  void vstr_relect(vstr *p, size_t index, size_t n);
   int vstr_appendf(vstr *p, const char *fmt, ...);
   int vstr_appendvin(vstr *p, const vstr *q, size_t qi, size_t qn);
   int vstr_appendvrn(vstr *p, const vstr *q, size_t qi, size_t qn);

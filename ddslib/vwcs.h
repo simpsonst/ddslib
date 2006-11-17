@@ -71,7 +71,11 @@ extern "C" {
   int vwcs_insertvr(vwcs *p, size_t index, const vwcs *q, size_t qi);
   int vwcs_insertv(vwcs *p, size_t index, const vwcs *q);
   void vwcs_elide(vwcs *, size_t index, size_t);
+  void vwcs_relide(vwcs *, size_t index, size_t);
   void vwcs_truncate(vwcs *, size_t index);
+  void vwcs_rtruncate(vwcs *, size_t index);
+  void vwcs_elect(vwcs *p, size_t index, size_t n);
+  void vwcs_relect(vwcs *p, size_t index, size_t n);
   int vwcs_appendf(vwcs *p, const wchar_t *fmt, ...);
   int vwcs_appendvin(vwcs *p, const vwcs *q, size_t qi, size_t qn);
   int vwcs_appendvrn(vwcs *p, const vwcs *q, size_t qi, size_t qn);

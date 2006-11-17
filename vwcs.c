@@ -78,9 +78,8 @@ wchar_t *vwcs_extract(vwcs *p)
   return r;
 }
 
-void vwcs_truncate(vwcs *p, size_t index)
+static void truncate(vwcs *p, size_t index)
 {
-  if (index >= p->len) return;
   p->len = index;
   if (p->len < p->cap / 4u) {
     size_t nc = (p->len + 3u) / 4u * 5u;
@@ -90,10 +89,19 @@ void vwcs_truncate(vwcs *p, size_t index)
   }
 }
 
-void vwcs_elide(vwcs *p, size_t index, size_t n)
+void vwcs_truncate(vwcs *p, size_t index)
 {
-  if (index >= p->len) return;
-  if (index + n > p->len) n = p->len - index;
+  if (index < p->len)
+    truncate(p, index);
+}
+
+void vwcs_rtruncate(vwcs *p, size_t index)
+{
+  truncate(p, index < p->len ? p->len - index : 0);
+}
+
+static void elide(vwcs *p, size_t index, size_t n)
+{
   size_t end = index + n;
   size_t rem = p->len - end;
   assert(index <= p->cap);
@@ -108,6 +116,52 @@ void vwcs_elide(vwcs *p, size_t index, size_t n)
     if (!setcap(p, nc))
       assert(0);
   }
+}
+
+void vwcs_elide(vwcs *p, size_t index, size_t n)
+{
+  if (index >= p->len) return;
+  if (index + n > p->len) n = p->len - index;
+  elide(p, index, n);
+}
+
+void vwcs_relide(vwcs *p, size_t index, size_t n)
+{
+  if (index >= p->len) return;
+  if (index + n > p->len) n = p->len - index;
+  elide(p, p->len - index - n, n);
+}
+
+static void elect(vwcs *p, size_t index, size_t n)
+{
+  wmemmove(p->base, p->base + index, n);
+  truncate(p, n);
+}
+
+void vwcs_elect(vwcs *p, size_t index, size_t n)
+{
+  if (index >= p->len) {
+    vwcs_clear(p);
+    return;
+  }
+  if (index + n >= p->len) {
+    elide(p, 0, index);
+    return;
+  }
+  elect(p, index, n);
+}
+
+void vwcs_relect(vwcs *p, size_t index, size_t n)
+{
+  if (index >= p->len) {
+    vwcs_clear(p);
+    return;
+  }
+  if (index + n >= p->len) {
+    truncate(p, p->len - index);
+    return;
+  }
+  elect(p, p->len - index - n, n);
 }
 
 int vwcs_setcap(vwcs *p, size_t nc)
@@ -213,7 +267,7 @@ int vwcs_unterm(vwcs *p)
 {
   if (!p->base || p->len == 0 || p->base[p->len - 1] != L'\0')
     return 0;
-  vwcs_elide(p, p->len - 1, 1);
+  truncate(p, p->len - 1);
   return 0;
 }
 
