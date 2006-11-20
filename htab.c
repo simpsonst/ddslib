@@ -101,6 +101,16 @@ void htab_close(htab self)
   free(self);
 }
 
+static htab_apprc clear_item(void *vp, htab_const key, htab_obj val)
+{
+  return htab_REMOVE;
+}
+
+void htab_clear(htab self)
+{
+  htab_apply(self, NULL, &clear_item);
+}
+
 size_t htab_hash_str(void *ctxt, htab_const key)
 {
   size_t r = 0;

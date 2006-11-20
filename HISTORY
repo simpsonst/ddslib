@@ -3,6 +3,8 @@ functions to vstr and vwcs.
 
 Made htab_close(NULL) a no-op.
 
+Added htab_clear() to clear a table without destroying it.
+
 
 2006-10-25 1.2.0
 
