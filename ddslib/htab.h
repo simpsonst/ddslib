@@ -92,8 +92,8 @@ extern "C" {
 		  htab_IMPL(SUFFIX, KEY_TYPE, VALUE_TYPE, CONST_VALUE_TYPE,, \
 			    KEY_MEMBER, VALUE_MEMBER, NULL_VALUE)
 
-#elif defined __GNUC__
-  /* GCC has wierd linkage for inlines. */
+#elif defined __GNUC__ && !defined __GNUC_STDC_INLINE__
+  /* Older GCC has weird linkage for inlines. */
 #define htab_DECL(SUFFIX, KEY_TYPE, VALUE_TYPE, CONST_VALUE_TYPE, \
                   KEY_MEMBER, VALUE_MEMBER, NULL_VALUE) \
 		  htab_IMPL(SUFFIX, KEY_TYPE, VALUE_TYPE, \
@@ -158,7 +158,7 @@ extern "C" {
     return htab_del(self, (htab_const) { .KEY_MEMBER = key }); \
   } struct tm
 
-#define htab_PROTO(SUFFIX, KEY_TYPE, VALUE_TYPE, STORAGE) \
+#define htab_PROTO(SUFFIX, KEY_TYPE, VALUE_TYPE, CONST_VALUE_TYPE, STORAGE) \
   STORAGE CONST_VALUE_TYPE htab_get##SUFFIX(htab self, KEY_TYPE key); \
   STORAGE VALUE_TYPE htab_pop##SUFFIX(htab self, KEY_TYPE key); \
   STORAGE VALUE_TYPE htab_rpl##SUFFIX(htab self, \

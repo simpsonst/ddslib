@@ -37,7 +37,7 @@ extern "C" {
 
 #define vwcs_NULL ((vwcs) { NULL, 0, 0 })
 
-#if defined __GNUC__
+#if defined __GNUC__ && !defined __GNUC_STDC_INLINE__
 #define vwcs_inline extern inline
 #define vwcs_INLINEBODY(B) B struct tm
 #else

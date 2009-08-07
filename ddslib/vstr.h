@@ -38,7 +38,7 @@ extern "C" {
 
 #define vstr_NULL ((vstr) { NULL, 0, 0 })
 
-#if defined __GNUC__
+#if defined __GNUC__ && !defined __GNUC_STDC_INLINE__
 #define vstr_inline extern inline
 #define vstr_INLINEBODY(B) B struct tm
 #else
