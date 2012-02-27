@@ -200,7 +200,7 @@ _Bool htab_pop(htab self, htab_const key, htab_obj *old)
   if (!pos || !*pos) return false;
   if (old) {
     *old = (*pos)->value;
-  } else {
+  } else if (self->release_value) {
     (*self->release_value)(self->ctxt, (*pos)->value);
   }
   e = *pos;
