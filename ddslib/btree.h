@@ -1,6 +1,6 @@
 /*
     DDSLib: Dynamic data structures
-    Copyright (C) 2002,2005  Steven Simpson
+    Copyright (C) 2002-3,2005-6,2012  Steven Simpson
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public

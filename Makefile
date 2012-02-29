@@ -7,6 +7,8 @@ RANLIB=ranlib
 INSTALL=install
 MKDIR=mkdir
 FIND=find
+SED=sed
+XARGS=xargs
 CP=cp
 RISCOS_ZIP=zip
 ARCHIVE_DIR=$(HOME)
@@ -149,3 +151,12 @@ riscos-archive: install-apps
 	$(CD) $(PREFIX)/apps ; \
 	$(RM) "$$FILENAME" ; \
 	$(RISCOS_ZIP) -, -r "$$FILENAME" !DDSLib
+
+
+# Set this to the comma-separated list of years that should appear in
+# the licence.  Do not use characters other than [0-9,] - no spaces.
+YEARS=2002-3,2005-6,2012
+
+update-licence:
+	$(FIND) . -name ".svn" -prune -or -type f -print0 | $(XARGS) -0 \
+	$(SED) -i 's/Copyright (C) [0-9,-]\+  Steven Simpson/Copyright (C) $(YEARS)  Steven Simpson/g'
