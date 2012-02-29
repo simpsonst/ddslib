@@ -89,6 +89,27 @@ extern "C" {
 
 #define dllist_loopinc(H,M,D) ((H)->entry = (H)->entry ? (H)->entry->M.D : 0)
 
+/* E1 and E2 are members of Ha.  Everything from E1 upto but excluding
+   E2 will be removed from Ha, and become the new contents of Hb. */
+#define dllist_loopsplit(Ha,Hb,M,E1,E2)		\
+  ((Ha)->entry = (E1)->M.prev,			\
+   (Hb)->entry = (E2)->M.prev,			\
+   (E1)->M.prev->M.next = (E2),			\
+   (E2)->M.prev->M.next = (E1),			\
+   (E1)->M.prev = (Hb)->entry,			\
+   (E2)->M.prev = (Ha)->entry)
+
+/* E1 is in Ha, and E2 is in Hb.  E1 is joined to E2's previous
+   element, and E2 is joined to E1's previous element, making a single
+   loop Ha.  Hb becomes empty. */
+#define dllist_loopjoin(Ha,Hb,M,E1,E2)		\
+  ((Ha)->entry = (E1)->M.prev,			\
+   (E1)->M.prev->M.next = (E2),			\
+   (E2)->M.prev->M.next = (E1),			\
+   (E1)->M.prev = (E2)->M.prev,			\
+   (E2)->M.prev = (Ha)->entry,			\
+   (Hb)->entry = 0)
+
 #ifdef __cplusplus
 }
 #endif

@@ -1,3 +1,7 @@
+Added loopsplit/join to lists.
+
+Added iterators for C++ lists.
+
 Added (r)truncate, relide, (r)elect, extract and character-insertion
 functions to vstr and vwcs.
 
