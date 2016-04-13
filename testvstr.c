@@ -3,7 +3,7 @@
 
 #include "ddslib/vstr.h"
 
-int main()
+int main(void)
 {
   char temp[10];
   snprintf(temp, sizeof temp, "Madam, I'm Adam.");
