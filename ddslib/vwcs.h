@@ -60,6 +60,10 @@ extern "C" {
   /* Ensure minimum capacity. */
   int vwcs_ensure(vwcs *p, size_t cap);
 
+  /* If the capacity is significantly greater than the length, reduce
+     to something close but not exact. */
+  void vwcs_shorten(vwcs *p);
+
 
 
 

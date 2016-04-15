@@ -60,6 +60,9 @@ extern "C" {
   /* Ensure minimum capacity. */
   int vstr_ensure(vstr *p, size_t cap);
 
+  /* If the capacity is significantly greater than the length, reduce
+     to something close but not exact. */
+  void vstr_shorten(vstr *p);
 
 
 

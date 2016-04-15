@@ -75,18 +75,6 @@ static CT *splice(TYPE *p, size_t x, size_t n) \
   return p->base + x; \
 } \
  \
-/* Reduce the capacity if the length is much smaller. */ \
-static void reduce_cap(TYPE *p) \
-{ \
-  if (p->len < p->cap / 4u) { \
-    size_t nc = (p->len + 3u) / 4u * 5u; \
-    if (nc <= p->cap) { \
-      int rc = setcap(p, nc); \
-      assert(rc == 0); \
-    } \
-  } \
-} \
- \
 /* Remove n elements starting at x from start. */ \
 static void elide(TYPE *p, size_t x, size_t n) \
 { \
@@ -98,9 +86,6 @@ static void elide(TYPE *p, size_t x, size_t n) \
   size_t rem = p->len - end; \
   MOVE(p->base + x, p->base + end, rem); \
   p->len -= n; \
- \
-  /* Determine whether to reduce the capacity. */ \
-  reduce_cap(p); \
 } \
  \
 /* Remove all elements after x from start. */ \
@@ -110,9 +95,6 @@ static void truncate(TYPE *p, size_t x) \
  \
   /* Discard the tail. */ \
   p->len = x; \
- \
-  /* Determine whether to reduce the capacity. */ \
-  reduce_cap(p); \
 } \
  \
 /* Remove the first x elements, and retain the next n. */ \
@@ -200,6 +182,18 @@ void PFX ## _compact(TYPE *p) \
  \
  \
  \
+ \
+/* Reduce the capacity if the length is much smaller. */ \
+void PFX ## _shorten(TYPE *p)				 \
+{							 \
+  if (p->len < p->cap / 4u) {				 \
+    size_t nc = (p->len + 3u) / 4u * 5u;		 \
+    if (nc <= p->cap) {					 \
+      int rc = setcap(p, nc);				 \
+      assert(rc == 0);					 \
+    }							 \
+  }							 \
+}							 \
  \
 int PFX ## _setc(TYPE *p, IT c, size_t n) \
 { \
