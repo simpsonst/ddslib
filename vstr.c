@@ -622,51 +622,6 @@ void vstr_relectr(vstr *p, size_t x, size_t n)
 }
 
 
-#if 0
-void vstr_elect(vstr *p, size_t x, size_t n)
-{
-  if (x >= p->len) {
-    vstr_clear(p);
-    return;
-  }
-  if (x + n >= p->len) {
-    elide(p, 0, x);
-    return;
-  }
-  elect(p, x, n);
-}
-
-void vstr_relect(vstr *p, size_t x, size_t n)
-{
-  if (x >= p->len) {
-    vstr_clear(p);
-    return;
-  }
-  if (x + n >= p->len) {
-    truncate(p, p->len - x);
-    return;
-  }
-  elect(p, p->len - x - n, n);
-}
-
-void vstr_electr(vstr *p, size_t x, size_t n)
-{
-  if (n >= x)
-    vstr_truncate(p, x);
-  else
-    vstr_elect(p, x - n, n);
-}
-
-void vstr_relectr(vstr *p, size_t x, size_t n)
-{
-  if (n >= x)
-    vstr_rneck(p, x);
-  else
-    vstr_relect(p, x - n, n);
-}
-#endif
-
-
 
 
 
