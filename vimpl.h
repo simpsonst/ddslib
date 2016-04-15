@@ -695,5 +695,5 @@ int PFX ## _setf(TYPE *p, const CT *fmt, ...) \
   return rc; \
 } \
  \
-int\
+struct PFX ## _dummy\
 

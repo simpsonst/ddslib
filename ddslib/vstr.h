@@ -34,13 +34,13 @@ extern "C" {
     size_t cap, len;
   } vstr;
 
-#define vstr_NULL ((vstr) { NULL, 0, 0 })
+#define vstr_NULL { NULL, 0, 0 }
 
   /* Access underlying array. */
-  char *vstr_get(const vstr *p);
+  char *(vstr_get)(const vstr *p);
 
   /* Get used length. */
-  size_t vstr_len(const vstr *p);
+  size_t (vstr_len)(const vstr *p);
 
   /* Detach and return allocated array. */
   char *vstr_extract(vstr *p);
@@ -65,7 +65,7 @@ extern "C" {
 
   /* Zeroing functions */
 
-  void vstr_clear(vstr *p); // Set non-null string to empty.
+  void (vstr_clear)(vstr *p); // Set non-null string to empty.
   int vstr_empty(vstr *p); // Set to empty.
   void vstr_reset(vstr *p); // Set to null.
 
@@ -203,10 +203,6 @@ extern "C" {
 #define vstr_get(p) ((char *) (p)->base)
 #define vstr_len(p) ((size_t) (p)->len)
 #define vstr_clear(p) ((void) ((p)->len = 0))
-
-  char *(vstr_get)(const vstr *p);
-  size_t (vstr_len)(const vstr *p);
-  void (vstr_clear)(vstr *p);
 
 #endif
 
