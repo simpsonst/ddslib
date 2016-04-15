@@ -30,6 +30,39 @@
 #include "ddslib/vstr.h"
 
 
+
+#include "vimpl.h"
+
+IMPL(vstr, vstr, char, '\0', "", strlen, memmove, memcpy, vsnprintf);
+
+
+
+int vstr_wcsmblen(const wchar_t *s, size_t len)
+{
+  if (!s) return 0;
+  static const mbstate_t null;
+  mbstate_t state = null;
+  char buf[MB_CUR_MAX];
+  int res = 0;
+  while (len > 0) {
+    size_t rc = wcrtomb(buf, *s, &state);
+    if (rc == (size_t) -1)
+      return -1;
+    res += rc;
+    len--;
+    s++;
+  }
+
+  // Return to initial shift state.
+  res += wcrtomb(NULL, L'\0', &state) - 1;
+  return res;
+}
+
+
+
+
+#if 0
+
 /*** Internal functions that don't do any range checking ***/
 
 /* Set the capacity to an exact size. */
@@ -705,27 +738,4 @@ int vstr_setf(vstr *p, const char *fmt, ...)
   va_end(ap);
   return rc;
 }
-
-
-
-
-int vstr_wcsmblen(const wchar_t *s, size_t len)
-{
-  if (!s) return 0;
-  static const mbstate_t null;
-  mbstate_t state = null;
-  char buf[MB_CUR_MAX];
-  int res = 0;
-  while (len > 0) {
-    size_t rc = wcrtomb(buf, *s, &state);
-    if (rc == (size_t) -1)
-      return -1;
-    res += rc;
-    len--;
-    s++;
-  }
-
-  // Return to initial shift state.
-  res += wcrtomb(NULL, L'\0', &state) - 1;
-  return res;
-}
+#endif

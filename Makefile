@@ -99,6 +99,8 @@ testree.o: ddslib/btree.h
 testvstr.o vstr.o: ddslib/vstr.h
 vwcs.o vwcsx.o: ddslib/vwcs.h
 
+vwcs.o vstr.o: vimpl.h
+
 HEADERS_C=$(filter %.h,$(HEADERS))
 HEADERS_CXX=$(filter %.hh,$(HEADERS))
 
