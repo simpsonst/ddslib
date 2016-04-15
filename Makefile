@@ -37,7 +37,7 @@ endif
 ddslib_mod=bheap.o
 
 ifeq ($(ENABLE_C99),yes)
-ddslib_mod += htab.o vstr.o vwcs.o vwcsx.o
+ddslib_mod += htab.o vstr.o vwcs.o
 endif
 
 testheap_obj=testheap.o bheap.o
