@@ -42,7 +42,7 @@ endif
 
 testheap_obj=testheap.o bheap.o
 testhash_obj=testhash.o htab.o
-testvstr_obj=testvstr.o vstr.o
+testvstr_obj=testvstr.o vstr.o vwcs.o
 
 all:: $(LIBRARIES:%=lib%.a)
 
@@ -97,7 +97,7 @@ testhash.o: ddslib/htab.h
 testheap.o: ddslib/bheap.h
 testree.o: ddslib/btree.h
 testvstr.o vstr.o: ddslib/vstr.h
-vwcs.o vwcsx.o: ddslib/vwcs.h
+testvstr.o vwcs.o vwcsx.o: ddslib/vwcs.h
 
 vwcs.o vstr.o: vimpl.h
 

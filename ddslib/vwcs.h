@@ -20,92 +20,200 @@
     Author contact: Email to ss@comp.lancs.ac.uk
 */
 
-#ifndef vwcs_INCLUDED
-#define vwcs_INCLUDED
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stdarg.h>
-#include <wchar.h>
+#ifndef vwcs_INCLUDED
+#define vwcs_INCLUDED
+
+#include <stddef.h>
 
   typedef struct {
     wchar_t *base;
     size_t cap, len;
   } vwcs;
 
-#define vwcs_NULL ((vwcs) { NULL, 0, 0 })
+#define vwcs_NULL { NULL, 0, 0 }
 
-#if defined __GNUC__ && !defined __GNUC_STDC_INLINE__
-#define vwcs_inline extern inline
-#define vwcs_INLINEBODY(B) B struct tm
-#else
-#define vwcs_inline inline
-#define vwcs_INLINEBODY(B)
+  /* Access underlying array. */
+  wchar_t *(vwcs_get)(const vwcs *p);
+
+  /* Get used length. */
+  size_t (vwcs_len)(const vwcs *p);
+
+  /* Detach and return allocated array. */
+  wchar_t *vwcs_extract(vwcs *p);
+
+  /* Set the capacity to match the length. */
+  void vwcs_compact(vwcs *p);
+
+  /* Ensure string is null-terminated. */
+  int vwcs_term(vwcs *p);
+
+  /* Ensure string is not null-terminated. */
+  int vwcs_unterm(vwcs *p);
+
+  /* Set the capacity, or fail if truncating would occur. */
+  int vwcs_setcap(vwcs *p, size_t cap);
+
+  /* Ensure minimum capacity. */
+  int vwcs_ensure(vwcs *p, size_t cap);
+
+
+
+
+  /* Zeroing functions */
+
+  void (vwcs_clear)(vwcs *p); // Set non-null string to empty.
+  int vwcs_empty(vwcs *p); // Set to empty.
+  void vwcs_reset(vwcs *p); // Set to null.
+
+
+  /* ~: Use all of null-terminated string, except terminator.
+
+     ~0: Use all of null-terminated string, including terminator.
+
+     ~n: Use array of known size.
+
+     ~v: Use all of other managed string.
+
+     ~vi: Use all but head of other managed string.
+
+     ~vn: Use head of other managed string.
+
+     ~vin: Use middle of other managed string.
+
+     ~vr: Use tail of other managed string.
+
+     ~vrn: Use middle of other managed string, reversed with
+     indexing.
+
+     ~f: Use format string and corresponding arguments.
+
+     v~f: Use format string and argument list. */
+
+
+  /* Assignment functions: Any previous value is discarded. */
+
+  int vwcs_set(vwcs *p, const wchar_t *s);
+  int vwcs_set0(vwcs *p, const wchar_t *s);
+  int vwcs_setn(vwcs *p, const wchar_t *, size_t n);
+  int vwcs_setc(vwcs *p, int, size_t n);
+  int vwcs_setv(vwcs *p, const vwcs *q);
+  int vwcs_setvi(vwcs *p, const vwcs *q, size_t qx);
+  int vwcs_setvn(vwcs *p, const vwcs *q, size_t qn);
+  int vwcs_setvin(vwcs *p, const vwcs *q, size_t qx, size_t qn);
+  int vwcs_setvr(vwcs *p, const vwcs *q, size_t qx);
+  int vwcs_setvrn(vwcs *p, const vwcs *q, size_t qx, size_t qn);
+  int vwcs_setf(vwcs *p, const wchar_t *fmt, ...);
+
+
+
+
+  /* Insertion functions */
+  int vwcs_insert(vwcs *p, size_t x, const wchar_t *s);
+  int vwcs_insert0(vwcs *p, size_t x, const wchar_t *s);
+  int vwcs_insertc(vwcs *p, size_t x, int, size_t n);
+  int vwcs_insertn(vwcs *p, size_t x, const wchar_t *, size_t n);
+  int vwcs_insertv(vwcs *p, size_t x, const vwcs *q);
+  int vwcs_insertvi(vwcs *p, size_t x, const vwcs *q, size_t qx);
+  int vwcs_insertvn(vwcs *p, size_t x, const vwcs *q, size_t qn);
+  int vwcs_insertvin(vwcs *p, size_t x,
+		     const vwcs *q, size_t qx, size_t qn);
+  int vwcs_insertvr(vwcs *p, size_t x, const vwcs *q, size_t qx);
+  int vwcs_insertvrn(vwcs *p, size_t x,
+		     const vwcs *q, size_t qx, size_t qn);
+  int vwcs_insertf(vwcs *p, size_t x, const wchar_t *fmt, ...);
+
+
+  /* Appendage functions; All of these are equivalent to their
+     insertion counterparts, but with x set to the length. */
+  int vwcs_append(vwcs *p, const wchar_t *s);
+  int vwcs_append0(vwcs *p, const wchar_t *s);
+  int vwcs_appendn(vwcs *p, const wchar_t *s, size_t n);
+  int vwcs_appendc(vwcs *p, int c, size_t n);
+  int vwcs_appendv(vwcs *p, const vwcs *q);
+  int vwcs_appendvi(vwcs *p, const vwcs *q, size_t qx);
+  int vwcs_appendvn(vwcs *p, const vwcs *q, size_t qn);
+  int vwcs_appendvin(vwcs *p, const vwcs *q, size_t qx, size_t qn);
+  int vwcs_appendvr(vwcs *p, const vwcs *q, size_t qx);
+  int vwcs_appendvrn(vwcs *p, const vwcs *q, size_t qx, size_t qn);
+  int vwcs_appendf(vwcs *p, const wchar_t *fmt, ...);
+
+
+  /* splice/elide/elect functions have the following forms:
+
+     ~: x is index from start, n counts towards end.
+
+     r~: x is index from end, n counts towards start.
+
+     ~r: x is index from end, n counts towards end. 
+
+     r~r: x is index from start, n counts towards start. */
+
+
+
+  /* Internal allocation functions */
+
+  /* Insert space for n elements at x from start, returning pointer to
+     start of new space. */
+  wchar_t *vwcs_splice(vwcs *p, size_t x, size_t n);
+
+  /* Insert space for n elements at x from end, returning pointer to
+     one-past-end of new space. */
+  wchar_t *vwcs_rsplice(vwcs *p, size_t x, size_t n);
+
+  /* Insert space for n elements at x from end, returning pointer to
+     start of new space. */
+  wchar_t *vwcs_splicer(vwcs *p, size_t x, size_t n);
+
+  /* Insert space for n elements at x from start, returning pointer to
+     one-past-end of new space. */
+  wchar_t *vwcs_rsplicer(vwcs *p, size_t x, size_t n);
+
+  /* Remove a central piece. */
+  void vwcs_elide(vwcs *p, size_t x, size_t n);
+  void vwcs_relide(vwcs *p, size_t x, size_t n);
+  void vwcs_elider(vwcs *p, size_t x, size_t n);
+  void vwcs_relider(vwcs *p, size_t x, size_t n);
+
+  /* Retain a central piece. */
+  void vwcs_elect(vwcs *p, size_t x, size_t n);
+  void vwcs_relect(vwcs *p, size_t x, size_t n);
+  void vwcs_electr(vwcs *p, size_t x, size_t n);
+  void vwcs_relectr(vwcs *p, size_t x, size_t n);
+
+  /* Keep the first n characters. */
+  void vwcs_truncate(vwcs *p, size_t n);
+
+  /* Remove the last n characters. */
+  void vwcs_rtruncate(vwcs *p, size_t n);
+
+  /* Remove the first n characters. */
+  void vwcs_neck(vwcs *p, size_t n);
+
+  /* Keep the last n characters. */
+  void vwcs_rneck(vwcs *p, size_t n);
+
+
+
+#define vwcs_get(p) ((wchar_t *) (p)->base)
+#define vwcs_len(p) ((size_t) (p)->len)
+#define vwcs_clear(p) ((void) ((p)->len = 0))
+
 #endif
 
-  vwcs_inline wchar_t *vwcs_get(const vwcs *p) { return p->base; }
-  vwcs_inline size_t vwcs_len(const vwcs *p) { return p->len; }
-  vwcs_inline void vwcs_clear(vwcs *p) { p->len = 0; }
-
-  wchar_t *vwcs_extract(vwcs *p);
-  int vwcs_empty(vwcs *p);
-  void vwcs_reset(vwcs *);
-  void vwcs_compact(vwcs *);
-  int vwcs_term(vwcs *p);
-  int vwcs_unterm(vwcs *);
-  int vwcs_setcap(vwcs *p, size_t nc);
-  int vwcs_ensure(vwcs *p, size_t cap);
-  wchar_t *vwcs_splice(vwcs *, size_t index, size_t n);
-  int vwcs_insertf(vwcs *, size_t index, const wchar_t *fmt, ...);
-  int vwcs_vinsertf(vwcs *, size_t index, const wchar_t *fmt, va_list ap);
-  int vwcs_insertc(vwcs *, size_t index, wchar_t, size_t);
-  int vwcs_insertn(vwcs *, size_t index, const wchar_t *, size_t);
-  int vwcs_insertvin(vwcs *p, size_t index,
-		     const vwcs *q, size_t qi, size_t qn);
-  int vwcs_insertvrn(vwcs *p, size_t index,
-		     const vwcs *q, size_t qi, size_t qn);
-  int vwcs_insertvi(vwcs *p, size_t index, const vwcs *q, size_t qi);
-  int vwcs_insertvn(vwcs *p, size_t index, const vwcs *q, size_t qn);
-  int vwcs_insertvr(vwcs *p, size_t index, const vwcs *q, size_t qi);
-  int vwcs_insertv(vwcs *p, size_t index, const vwcs *q);
-  void vwcs_elide(vwcs *, size_t index, size_t);
-  void vwcs_relide(vwcs *, size_t index, size_t);
-  void vwcs_truncate(vwcs *, size_t index);
-  void vwcs_rtruncate(vwcs *, size_t index);
-  void vwcs_elect(vwcs *p, size_t index, size_t n);
-  void vwcs_relect(vwcs *p, size_t index, size_t n);
-  int vwcs_appendf(vwcs *p, const wchar_t *fmt, ...);
-  int vwcs_appendvin(vwcs *p, const vwcs *q, size_t qi, size_t qn);
-  int vwcs_appendvrn(vwcs *p, const vwcs *q, size_t qi, size_t qn);
-  int vwcs_appendvi(vwcs *p, const vwcs *q, size_t qi);
-  int vwcs_appendvn(vwcs *p, const vwcs *q, size_t qn);
-  int vwcs_appendvr(vwcs *p, const vwcs *q, size_t qi);
-  int vwcs_appendv(vwcs *p, const vwcs *q);
-
-  vwcs_inline int vwcs_vappendf(vwcs *p, const wchar_t *fmt, va_list ap) {
-    return vwcs_vinsertf(p, vwcs_len(p), fmt, ap);
-  }
-
-  vwcs_inline int vwcs_insert(vwcs *p, size_t index, const wchar_t *s) {
-    return vwcs_insertn(p, index, s, wcslen(s));
-  }
-
-  vwcs_inline int vwcs_appendn(vwcs *p, const wchar_t *s, size_t n) {
-    return vwcs_insertn(p, vwcs_len(p), s, n);
-  }
-
-  vwcs_inline int vwcs_appendc(vwcs *p, wchar_t c, size_t n) {
-    return vwcs_insertc(p, vwcs_len(p), c, n);
-  }
-
-  vwcs_inline int vwcs_append(vwcs *p, const wchar_t *s) {
-    return vwcs_appendn(p, s, wcslen(s));
-  }
+#ifdef va_start
+  /* We can afford to re-declare functions without re-inclusion
+     protection.  This allows the user to include <stdarg.h> and then
+     <ddslib/vwcs.h> again to access these specific functions if an
+     earlier inclusion failed to declare them. */
+  int vwcs_vsetf(vwcs *p, const wchar_t *fmt, va_list ap);
+  int vwcs_vinsertf(vwcs *p, size_t x, const wchar_t *fmt, va_list ap);
+  int vwcs_vappendf(vwcs *p, const wchar_t *fmt, va_list ap);
+#endif
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

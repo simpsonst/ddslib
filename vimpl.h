@@ -11,13 +11,20 @@
 
    LEN: length function; strlen, wcslen
 
-   MOVE: move function; memmove, wmemmove,
+   SET: array-set function; memset, wmemset
 
-   COPY: copy function; memcpy, wmemcpy,
+   MOVE: move function; memmove, wmemmove
 
-   PRINT: print function: vsnprintf, vswprintf */
+   COPY: copy function; memcpy, wmemcpy
 
-#define IMPL(PFX, TYPE, CT, NC, NS, LEN, MOVE, COPY, PRINT)	\
+   PRINT: print function: vsnprintf, vswprintf
+
+   NAIVE: If true, use PRINT with increasing allocations until it
+   fits.  Otherwise, use the function once with a NULL buffer to get
+   the required size, allocate that amount, and use the function again
+   with the new space. */
+
+#define IMPL(PFX, TYPE, CT, NC, NS, LEN, SET, MOVE, COPY, PRINT, NAIVE)	\
  \
 /*** Internal functions that don't do any range checking ***/ \
  \
@@ -195,7 +202,7 @@ void PFX ## _compact(TYPE *p) \
 int PFX ## _setc(TYPE *p, int c, size_t n) \
 { \
   if (PFX ## _ensure(p, n) < 0) return -1; \
-  memset(p->base, c, n); \
+  SET(p->base, c, n); \
   p->len = n; \
   return 0; \
 } \
@@ -266,23 +273,8 @@ int PFX ## _setvrn(TYPE *p, const TYPE *q, size_t qx, size_t qn) \
  \
 int PFX ## _vsetf(TYPE *p, const CT *fmt, va_list ap) \
 { \
-  /* How much space is required? */		\
-  int req; \
-  va_list ap2; \
-  va_copy(ap2, ap); \
-  req = PRINT(NULL, 0, fmt, ap2); \
-  va_end(ap2); \
-  if (req < 0) return -1; \
- \
-  /* Allocate the required space, and set the length. */	\
-  if (PFX ## _ensure(p, req + 1) < 0) return -1; \
-  p->len = req; \
- \
-  /* Write the characters in. */	     \
-  int rc = PRINT(p->base, req + 1, fmt, ap); \
-  assert(rc >= 0); \
- \
-  return 0; \
+  if (PFX ## _empty(p) < 0) return -1; \
+  return PFX ## _vinsertf(p, 0, fmt, ap); \
 } \
  \
  \
@@ -371,42 +363,62 @@ int PFX ## _ensure(TYPE *p, size_t cap) \
   return PFX ## _setcap(p, cap); \
 } \
  \
-int PFX ## _vinsertf(TYPE *p, size_t x, const CT *fmt, va_list ap) \
-{ \
-  if (x > p->len) x = p->len; \
- \
-  /* How much space is required? */		\
-  int req; \
-  va_list ap2; \
-  va_copy(ap2, ap); \
-  req = PRINT(NULL, 0, fmt, ap2); \
-  va_end(ap2); \
-  if (req < 0) return -1; \
- \
-  /* Do we need to allocate an extra byte at the end for the NC \
-     which printf will add? */					\
-  int gap = x >= p->len; \
- \
-  /* Try to make that space available. */    \
-  CT *pos = PFX ## _splice(p, x, req + gap); \
-  if (!pos) return -1; \
- \
-  CT old = NC; \
-  if (!gap) \
-    old = p->base[x + req]; \
- \
-  /* Now write the characters in. */	 \
-  int rc = PRINT(pos, req + 1, fmt, ap); \
-  assert(rc >= 0); \
- \
-  if (gap) \
-    /* Remove the trailing NC. */    \
-    PFX ## _elide(p, p->len - 1, 1); \
-  else \
-    /* Restore the original character overwritten by the NC. */	\
-    p->base[x + req] = old; \
-  return 0; \
-} \
+int PFX ## _vinsertf(TYPE *p, size_t x, const CT *fmt, va_list ap)	\
+{									\
+  if (NAIVE) {								\
+    if (x > p->len) x = p->len;						\
+    size_t done = 0, guess = 100;					\
+    va_list ap2;							\
+    int rc;								\
+    do {								\
+      CT *pos = splice(p, x, guess);					\
+      if (pos == NULL) {						\
+	elide(p, x, done);						\
+	return -1;							\
+      }									\
+      done += guess;							\
+      guess += guess / 2;						\
+      va_copy(ap2, ap);							\
+      rc = PRINT(pos, done, fmt, ap2);					\
+      va_end(ap2);							\
+    } while (rc < 0);							\
+    elide(p, x + rc, done - x - rc);					\
+    return rc;								\
+  } else {								\
+    /* How much space is required? */					\
+    int req;								\
+    va_list ap2;							\
+    va_copy(ap2, ap);							\
+    req = PRINT(NULL, 0, fmt, ap2);					\
+    va_end(ap2);							\
+    if (req < 0) return -1;						\
+									\
+    /* Do we need to allocate an extra byte at the end for the NC	\
+       which printf will add? */					\
+    int gap = x >= p->len;						\
+    if (gap) x = p->len;						\
+									\
+    /* Try to make that space available. */				\
+    CT *pos = splice(p, x, req + gap);					\
+    if (!pos) return -1;						\
+									\
+    CT old = NC;							\
+    if (!gap)								\
+      old = p->base[x + req];						\
+									\
+    /* Now write the characters in. */					\
+    int rc = PRINT(pos, req + 1, fmt, ap);				\
+    assert(rc == req);							\
+									\
+    if (gap)								\
+      /* Remove the trailing NC. */					\
+      p->len--;								\
+    else								\
+      /* Restore the original character overwritten by the NC. */	\
+      p->base[x + req] = old;						\
+    return rc;								\
+  }									\
+}									\
  \
 int PFX ## _empty(TYPE *p) \
 { \
@@ -422,7 +434,7 @@ int PFX ## _insertc(TYPE *p, size_t x, int c, size_t n) \
   assert(pos - p->base >= 0); \
   assert((size_t) (pos - p->base) <= p->cap); \
   assert((size_t) (pos - p->base) + n <= p->cap); \
-  memset(pos, c, n); \
+  SET(pos, c, n); \
   return 0; \
 } \
  \
