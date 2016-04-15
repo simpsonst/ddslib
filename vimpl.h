@@ -5,6 +5,8 @@
 
    CT: character type; char, wchar_t
 
+   IT: integer type; int, wchar_t
+
    NC: null character; '\0', L'\0'
 
    NS: empty string; "", L""
@@ -24,7 +26,7 @@
    the required size, allocate that amount, and use the function again
    with the new space. */
 
-#define IMPL(PFX, TYPE, CT, NC, NS, LEN, SET, MOVE, COPY, PRINT, NAIVE)	\
+#define IMPL(PFX, TYPE, CT, IT, NC, NS, LEN, SET, MOVE, COPY, PRINT, NAIVE) \
  \
 /*** Internal functions that don't do any range checking ***/ \
  \
@@ -199,7 +201,7 @@ void PFX ## _compact(TYPE *p) \
  \
  \
  \
-int PFX ## _setc(TYPE *p, int c, size_t n) \
+int PFX ## _setc(TYPE *p, IT c, size_t n) \
 { \
   if (PFX ## _ensure(p, n) < 0) return -1; \
   SET(p->base, c, n); \
@@ -426,7 +428,7 @@ int PFX ## _empty(TYPE *p) \
   return p->base ? setcap(p, 1) : 0; \
 } \
  \
-int PFX ## _insertc(TYPE *p, size_t x, int c, size_t n) \
+int PFX ## _insertc(TYPE *p, size_t x, IT c, size_t n) \
 { \
   if (!n) return 0; \
   CT *pos = PFX ## _splice(p, x, n); \
@@ -514,7 +516,7 @@ int PFX ## _appendn(TYPE *p, const CT *s, size_t n) \
   return PFX ## _insertn(p, PFX ## _len(p), s, n); \
 } \
  \
-int PFX ## _appendc(TYPE *p, int c, size_t n) \
+int PFX ## _appendc(TYPE *p, IT c, size_t n) \
 { \
   return PFX ## _insertc(p, PFX ## _len(p), c, n); \
 } \

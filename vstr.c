@@ -33,7 +33,7 @@
 
 #include "vimpl.h"
 
-IMPL(vstr, vstr, char, '\0', "", strlen, memset,
+IMPL(vstr, vstr, char, int, '\0', "", strlen, memset,
      memmove, memcpy, vsnprintf, 0);
 
 

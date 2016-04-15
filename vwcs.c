@@ -31,5 +31,5 @@
 
 #include "vimpl.h"
 
-IMPL(vwcs, vwcs, wchar_t, L'\0', L"", wcslen, wmemset,
+IMPL(vwcs, vwcs, wchar_t, wchar_t, L'\0', L"", wcslen, wmemset,
        wmemmove, wmemcpy, vswprintf, 1);

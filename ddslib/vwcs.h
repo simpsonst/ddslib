@@ -99,7 +99,7 @@ extern "C" {
   int vwcs_set(vwcs *p, const wchar_t *s);
   int vwcs_set0(vwcs *p, const wchar_t *s);
   int vwcs_setn(vwcs *p, const wchar_t *, size_t n);
-  int vwcs_setc(vwcs *p, int, size_t n);
+  int vwcs_setc(vwcs *p, wchar_t, size_t n);
   int vwcs_setv(vwcs *p, const vwcs *q);
   int vwcs_setvi(vwcs *p, const vwcs *q, size_t qx);
   int vwcs_setvn(vwcs *p, const vwcs *q, size_t qn);
@@ -114,7 +114,7 @@ extern "C" {
   /* Insertion functions */
   int vwcs_insert(vwcs *p, size_t x, const wchar_t *s);
   int vwcs_insert0(vwcs *p, size_t x, const wchar_t *s);
-  int vwcs_insertc(vwcs *p, size_t x, int, size_t n);
+  int vwcs_insertc(vwcs *p, size_t x, wchar_t, size_t n);
   int vwcs_insertn(vwcs *p, size_t x, const wchar_t *, size_t n);
   int vwcs_insertv(vwcs *p, size_t x, const vwcs *q);
   int vwcs_insertvi(vwcs *p, size_t x, const vwcs *q, size_t qx);
@@ -132,7 +132,7 @@ extern "C" {
   int vwcs_append(vwcs *p, const wchar_t *s);
   int vwcs_append0(vwcs *p, const wchar_t *s);
   int vwcs_appendn(vwcs *p, const wchar_t *s, size_t n);
-  int vwcs_appendc(vwcs *p, int c, size_t n);
+  int vwcs_appendc(vwcs *p, wchar_t c, size_t n);
   int vwcs_appendv(vwcs *p, const vwcs *q);
   int vwcs_appendvi(vwcs *p, const vwcs *q, size_t qx);
   int vwcs_appendvn(vwcs *p, const vwcs *q, size_t qn);
