@@ -1,5 +1,6 @@
 all::
 
+TAR=tar
 CD=cd
 CAT=cat
 AR=ar
@@ -10,8 +11,7 @@ FIND=find
 SED=sed
 XARGS=xargs
 CP=cp
-RISCOS_ZIP=zip
-UNZIP=unzip
+ZIP=zip
 PRINTF=printf
 CMP=cmp -s
 CPCMP=$(CMP) '$(1)' '$(2)' || ( $(CP) '$(1)' '$(2)' && $(PRINTF) '[Changed]: %s\n' '$(3)' )
@@ -72,6 +72,8 @@ testvstr_obj += testvstr
 testvstr_obj += vstr
 testvstr_obj += vwcs
 
+riscos_apps += ddslib
+
 c=,
 
 SOURCES=$(filter-out $(HEADERS:%=ddslib/%) $(COMPAT_HEADERS),$(patsubst src/obj/%,%,$(wildcard src/obj/*.c src/obj/*.h src/obj/ddslib/*.h)))
@@ -97,14 +99,17 @@ install:: install-headers install-libraries
 
 ifneq ($(filter true t y yes on 1,$(call lc,$(ENABLE_RISCOS))),)
 install:: install-riscos
+all:: out/ddslib-riscos.zip
 endif
 
 install-headers:
 	@$(PRINTF) 'Installing headers in %s:\n' '$(PREFIX)/include'
 	@$(PRINTF) '\t<%s>\n' $(HEADERS:%=ddslib/%) $(COMPAT_HEADERS)
 	@$(INSTALL) -d $(PREFIX)/include/ddslib
-	@$(INSTALL) -m 0644 $(HEADERS:%=src/obj/ddslib/%) $(PREFIX)/include/ddslib
-	@$(INSTALL) -m 0644 $(COMPAT_HEADERS:%=src/obj/%) $(PREFIX)/include
+	@$(INSTALL) -m 0644 $(HEADERS:%=src/obj/ddslib/%) \
+	  $(PREFIX)/include/ddslib
+	@$(INSTALL) -m 0644 $(COMPAT_HEADERS:%=src/obj/%) \
+	  $(PREFIX)/include
 
 install-libraries:
 	@$(PRINTF) 'Installing libraries in %s:\n' '$(PREFIX)/lib'
@@ -114,9 +119,11 @@ install-libraries:
 
 install-riscos::
 	@$(PRINTF) 'Installing RISC OS apps in %s:\n' '$(PREFIX)/apps'
+	@$(PRINTF) '\t%s\t(%s)\n' $(foreach app,$(riscos_apps),'$(app)' '$($(app)_appname)')
 	@$(INSTALL) -d $(PREFIX)/apps
-	@$(CD) $(PREFIX)/apps ; \
-	$(UNZIP) -oq $(abspath out/ddslib-riscos.zip)
+	@$(TAR) cf - -C out/riscos \
+	  $(foreach app,$(riscos_apps),$($(app)_app:%=$($(app)_appname)/%)) | \
+	  $(TAR) xf - -C $(PREFIX)/apps
 
 
 ## Generic rules
@@ -264,14 +271,12 @@ out/riscos/$(ddslib_appname)/Library/o/%,ffd: out/lib%.a
 	@$(PRINTF) '[Copy RISC OS export] lib%s.a\n' '$*'
 	@$(CP) "$<" "$@"
 
-riscos-apps: $(ddslib_app:%=out/riscos/$(ddslib_appname)/%)
-
-out/ddslib-riscos.zip: riscos-apps
+out/ddslib-riscos.zip: $(ddslib_app:%=out/riscos/$(ddslib_appname)/%)
 	@$(MKDIR) -p '$(@D)'
 	@$(PRINTF) '[RISC OS zip] %s\n' 'ddslib'
 	@$(RM) '$@'
 	@$(CD) out/riscos ; \
-	$(RISCOS_ZIP) -r '$(abspath $@)' $(ddslib_app:%=$(ddslib_appname)/%)
+	$(ZIP) -rq '$(abspath $@)' $(ddslib_app:%=$(ddslib_appname)/%)
 
 
 # Set this to the comma-separated list of years that should appear in
