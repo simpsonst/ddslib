@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <wchar.h>
+#include <limits.h>
 
 #include "ddslib/vstr.h"
 
@@ -43,7 +44,7 @@ int vstr_wcsmblen(const wchar_t *s, size_t len)
   if (!s) return 0;
   static const mbstate_t null;
   mbstate_t state = null;
-  char buf[MB_CUR_MAX];
+  char buf[MB_LEN_MAX];
   int res = 0;
   while (len > 0) {
     size_t rc = wcrtomb(buf, *s, &state);

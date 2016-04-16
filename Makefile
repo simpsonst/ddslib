@@ -49,7 +49,10 @@ COMPAT_HEADERS += bheap.h
 ddslib_mod += bheap
 
 ifneq ($(filter true t y yes on 1,$(call lc,$(ENABLE_C99))),)
-HEADERS += htab.h vstr.h vwcs.h
+HEADERS += vstr.h
+HEADERS += vwcs.h
+HEADERS += htab.h
+
 ddslib_mod += htab
 ddslib_mod += vstr
 ddslib_mod += vwcs
@@ -171,6 +174,7 @@ define LIB_RULE
 out/lib$(1).a: tmp/libobjlist.$(1) $$($(1)_mod:%=tmp/obj/%.o)
 	@$$(MKDIR) '$$(@D)'
 	@$$(PRINTF) '[Link %s]:\n' '$(1)'
+	@$$(RM) '$$@'
 	@$$(AR) r '$$@' $$($(1)_mod:%=tmp/obj/%.o)
 	@$$(AR) t '$$@'
 	@$$(RANLIB) '$$@'
