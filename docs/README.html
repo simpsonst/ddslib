@@ -23,8 +23,7 @@ work with the default configuration options:</p>
 
 <pre class="spool">
 $ <kbd>make</kbd>
-$ <kbd>su</kbd>
-# <kbd>make install</kbd>
+$ <kbd>sudo make install</kbd>
 </pre>
 
 <p>However, you may want to configure compilation options or install
@@ -42,7 +41,7 @@ by either:</p>
 <li><p>the <samp>ddslib</samp> directory, or in</p></li>
 
 <li><p>the path that <samp>make</samp> searches
-(e.g. <samp>/usr/local/include</samp> or <samp>/usr/include</samp>, or
+(e.g., <samp>/usr/local/include</samp> or <samp>/usr/include</samp>, or
 any extra directories you have configured).</p></li>
 
 </ul></li>
@@ -53,28 +52,31 @@ any extra directories you have configured).</p></li>
 <samp>~/.install/include-config</samp>:</p>
 
 <pre class="makefile">
-# example ddslib-env.mk
+## Example ddslib-env.mk
 
-# C options, language variant and optimisations
+## C options, language variant and optimisations
 CC=gcc
 CFLAGS += -std=gnu99
 CFLAGS += -O2
 
-# C++ options, language variant and optimisations
+## C++ options, language variant and optimisations
 CXX=g++
 CXXFLAGS += -std=gnu++98
 CXXFLAGS += -O2
 
-# Place to install the library
+## Place to install the library
 PREFIX=$(HOME)/.install
 
-# To disable the compilation and installation of
-# problematic headers if you don't have a full C99
-# implementation:
+## To disable the compilation and installation of
+## problematic headers if you don't have a full C99
+## implementation:
 #ENABLE_C99=no
 
-# Similarly for C++:
+## Similarly for C++:
 #ENABLE_CXX=no
+
+## Create ZIP for expansion on RISC OS:
+ENABLE_RISCOS=yes
 </pre>
 
 <p>&hellip;and the environment variable <samp>MAKEFLAGS</samp> set to
@@ -89,8 +91,8 @@ PREFIX=$(HOME)/.install
 
 <p>This header assumes that you want to maintain a list of structures in
 which you've incorporated the necessary &lsquo;previous&rsquo; and
-&lsquo;next&rsquo; pointers.  The list can be <dfn>open</dfn>, i.e. it
-has a start and an end, or <dfn>closed</dfn>, i.e. it loops
+&lsquo;next&rsquo; pointers.  The list can be <dfn>open</dfn>, i.e., it
+has a start and an end, or <dfn>closed</dfn>, i.e., it loops
 continuously.</p>
 
 <p>As an example, let's assume that we have a structure for each list
@@ -283,7 +285,7 @@ The second is the element type, and the third is the key type.</p>
 
 <p>You also need to provide an implementation.  Make sure the above
 declarations are in scope, then define a macro of the form <code
-class=C>CMP(void *, int, int)</code> (i.e. the parameters are keys),
+class=C>CMP(void *, int, int)</code> (i.e., the parameters are keys),
 before providing it as part of the implementation:</p>
 
 <pre class=C>
