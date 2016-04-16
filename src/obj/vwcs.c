@@ -31,5 +31,17 @@
 
 #include "vimpl.h"
 
+#if defined __riscos__ || defined __riscos
+#define MODE 2
+#define PRINT dummy
+static int dummy(wchar_t *buf, size_t len, const wchar_t *fmt, va_list ap)
+{
+  return -1;
+}
+#else
+#define MODE 1
+#define PRINT vswprintf
+#endif
+
 IMPL(vwcs, vwcs, wchar_t, wchar_t, L'\0', L"", wcslen, wmemset,
-       wmemmove, wmemcpy, vswprintf, 1);
+       wmemmove, wmemcpy, PRINT, MODE);
