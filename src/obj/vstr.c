@@ -30,14 +30,10 @@
 
 #include "ddslib/vstr.h"
 
-
-
 #include "vimpl.h"
 
 IMPL(vstr, vstr, char, int, '\0', "", strlen, memset,
      memmove, memcpy, vsnprintf, 0);
-
-
 
 int vstr_wcsmblen(const wchar_t *s, size_t len)
 {
