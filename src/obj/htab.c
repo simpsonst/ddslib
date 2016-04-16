@@ -48,6 +48,17 @@ struct entry {
   htab_obj key;
 };
 
+/* This is a hack to persuade the compiler not to warn about
+   dereferencing type-punned pointers.  This is only done in this file
+   to convert pointers to htab_obj into pointers to htab_const.  These
+   union types are identical, except that one member is (void *) in
+   one and (const void *) in the other.  Is there any way this can
+   fail? */
+static htab_const *get_const(htab_obj *p)
+{
+  return (htab_const *) p;
+}
+
 htab htab_open(size_t n, void *ctxt,
 	       size_t (*hash)(void *, htab_const),
 	       int (*cmp)(void *, htab_const, htab_const),
@@ -181,7 +192,7 @@ static inline struct entry **find_ptr(htab self, htab_const key)
   /* The cast causes GCC to warn about breaking strict-aliasing rules,
      but the only difference is that one of the structure fields is
      constant.  That shouldn't cause a problem, should it? */
-  while (*res && (*self->cmp)(self->ctxt, key, *(htab_const *) &(*res)->key))
+  while (*res && (*self->cmp)(self->ctxt, key, *get_const(&(*res)->key)))
     res = &(*res)->next;
   return res;
 }
@@ -260,7 +271,7 @@ void htab_apply(htab self, void *ctxt,
 	 rules, but the only difference is that one of the structure
 	 fields is constant.  That shouldn't cause a problem, should
 	 it? */
-      htab_apprc rc = (*op)(ctxt, *(htab_const *) &e->key, e->value);
+      htab_apprc rc = (*op)(ctxt, *get_const(&e->key), e->value);
       if (rc & htab_REMOVE) {
 	if (self->release_value)
 	  (*self->release_value)(self->ctxt, e->value);
