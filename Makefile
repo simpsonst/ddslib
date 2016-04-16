@@ -35,7 +35,7 @@ CBINARIES += testhash
 CBINARIES += testheap
 CBINARIES += testree
 
-LIBRARIES=ddslib
+LIBRARIES += ddslib
 
 HEADERS += dllist.h
 HEADERS += btree.h
