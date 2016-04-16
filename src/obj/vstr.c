@@ -27,6 +27,7 @@
 #include <stdarg.h>
 #include <wchar.h>
 #include <limits.h>
+#include <stdint.h>
 
 #include "ddslib/vstr.h"
 

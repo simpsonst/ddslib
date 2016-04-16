@@ -376,6 +376,10 @@
 	  return -1;							\
 	}								\
 	done += guess;							\
+	if (guess / 2 > SIZE_MAX - guess) {				\
+	  elide(p, x, done);						\
+	  return -1;							\
+	}								\
 	guess += guess / 2;						\
 	va_copy(ap2, ap);						\
 	rc = PRINT(pos, done, fmt, ap2);				\

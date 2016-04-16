@@ -26,12 +26,16 @@
 #include <stdarg.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdint.h>
 
 #include "ddslib/vwcs.h"
 
 #include "vimpl.h"
 
 #if defined __riscos__ || defined __riscos
+/* Compiling with GCC for RISC OS seems to lack a declaration for
+   vwsprintf, so we have to disable vinsertf, which will in turn
+   disable all of v?(set|insert|append)f. */
 #define MODE 2
 #define PRINT dummy
 static int dummy(wchar_t *buf, size_t len, const wchar_t *fmt, va_list ap)
