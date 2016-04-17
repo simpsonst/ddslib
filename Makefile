@@ -61,24 +61,24 @@ testvstr_obj += testvstr
 testvstr_obj += vstr
 testvstr_obj += vwcs
 
-riscos_apps += ddslib
+riscos_zips += ddslib
 ddslib_appname=!DDSLib
 
 c=,
 
 SOURCES=$(filter-out $(headers),$(patsubst src/obj/%,%,$(wildcard src/obj/*.c src/obj/*.h src/obj/ddslib/*.h)))
 
-ddslib_app += !Boot,feb
-ddslib_app += README,faf
-ddslib_app += COPYING,fff
-ddslib_app += VERSION,fff
-ddslib_app += HISTORY,fff
-ddslib_app += $(COMPAT_HEADERS:%.h=Library/h/%,fff)
-ddslib_app += $(patsubst %.h,Library/ddslib/h/%$cfff,$(filter %.h,$(DDSLIB_HEADERS)))
-ddslib_app += $(patsubst %.hh,Library/ddslib/hh/%$cfff,$(filter %.hh,$(DDSLIB_HEADERS)))
-ddslib_app += $(patsubst %.c,Source/c/%$cfff,$(filter %.c,$(SOURCES)))
-ddslib_app += $(patsubst %.h,Source/h/%$cfff,$(filter %.h,$(SOURCES)))
-ddslib_app += $(libraries:%=Library/o/%,ffd)
+ddslib_rof += !Boot,feb
+ddslib_rof += README,faf
+ddslib_rof += COPYING,fff
+ddslib_rof += VERSION,fff
+ddslib_rof += HISTORY,fff
+ddslib_rof += $(COMPAT_HEADERS:%.h=Library/h/%,fff)
+ddslib_rof += $(patsubst %.h,Library/ddslib/h/%$cfff,$(filter %.h,$(DDSLIB_HEADERS)))
+ddslib_rof += $(patsubst %.hh,Library/ddslib/hh/%$cfff,$(filter %.hh,$(DDSLIB_HEADERS)))
+ddslib_rof += $(patsubst %.c,Source/c/%$cfff,$(filter %.c,$(SOURCES)))
+ddslib_rof += $(patsubst %.h,Source/h/%$cfff,$(filter %.h,$(SOURCES)))
+ddslib_rof += $(libraries:%=Library/o/%,ffd)
 
 include binodeps.mk
 
