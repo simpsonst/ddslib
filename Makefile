@@ -94,7 +94,7 @@ endif
 
 # Set this to the comma-separated list of years that should appear in
 # the licence.  Do not use characters other than [0-9,] - no spaces.
-YEARS=2002-3,2005-6,2012
+YEARS=2002-3,2005-6,2012,2016
 
 update-licence:
 	$(FIND) . -name ".svn" -prune -or -type f -print0 | $(XARGS) -0 \
