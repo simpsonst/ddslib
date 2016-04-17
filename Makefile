@@ -16,12 +16,12 @@ PREFIX=$(INSTALL_PATH)
 
 lc=$(subst A,a,$(subst B,b,$(subst C,c,$(subst D,d,$(subst E,e,$(subst F,f,$(subst G,g,$(subst H,h,$(subst I,i,$(subst J,j,$(subst K,k,$(subst L,l,$(subst M,m,$(subst N,n,$(subst O,o,$(subst P,p,$(subst Q,q,$(subst R,r,$(subst S,s,$(subst T,t,$(subst U,u,$(subst V,v,$(subst W,w,$(subst X,x,$(subst Y,y,$(subst Z,z,$1))))))))))))))))))))))))))
 
-binaries.c += testvstr
-binaries.c += testhash
-binaries.c += testheap
-binaries.c += testree
+test_binaries.c += testvstr
+test_binaries.c += testhash
+test_binaries.c += testheap
+test_binaries.c += testree
 
-export_libraries += ddslib
+libraries += ddslib
 
 DDSLIB_HEADERS += dllist.h
 DDSLIB_HEADERS += btree.h
@@ -78,11 +78,11 @@ ddslib_app += $(patsubst %.h,Library/ddslib/h/%$cfff,$(filter %.h,$(DDSLIB_HEADE
 ddslib_app += $(patsubst %.hh,Library/ddslib/hh/%$cfff,$(filter %.hh,$(DDSLIB_HEADERS)))
 ddslib_app += $(patsubst %.c,Source/c/%$cfff,$(filter %.c,$(SOURCES)))
 ddslib_app += $(patsubst %.h,Source/h/%$cfff,$(filter %.h,$(SOURCES)))
-ddslib_app += $(export_libraries:%=Library/o/%,ffd)
+ddslib_app += $(libraries:%=Library/o/%,ffd)
 
 include binodeps.mk
 
-all:: $(export_libraries:%=out/lib%.a)
+all:: $(libraries:%=out/lib%.a)
 
 install:: install-headers install-libraries
 
