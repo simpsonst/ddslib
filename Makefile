@@ -1,23 +1,10 @@
 all::
 
-TAR=tar
-CD=cd
-CAT=cat
-AR=ar
-RANLIB=ranlib
+PRINTF=printf
 INSTALL=install
-MKDIR=mkdir -p
 FIND=find
 SED=sed
 XARGS=xargs
-CP=cp
-ZIP=zip
-PRINTF=printf
-CMP=cmp -s
-CPCMP=$(CMP) '$(1)' '$(2)' || ( $(CP) '$(1)' '$(2)' && $(PRINTF) '[Changed]: %s\n' '$(3)' )
-
-DEPARGS.c=-MMD -MT '$(1)' -MF '$(2)'
-DEPARGS.cc=-MMD -MT '$(1)' -MF '$(2)'
 
 ENABLE_CXX=yes
 ENABLE_C99=yes
@@ -110,32 +97,91 @@ install-headers:
 	@$(INSTALL) -m 0644 $(COMPAT_HEADERS:%=src/obj/%) \
 	  $(PREFIX)/include
 
-install-libraries:
-	@$(PRINTF) 'Installing libraries in %s:\n' '$(PREFIX)/lib'
-	@$(PRINTF) '\t%s\n' $(LIBRARIES)
-	@$(INSTALL) -d $(PREFIX)/lib
-	@$(INSTALL) -m 0644 $(LIBRARIES:%=out/lib%.a) $(PREFIX)/lib
 
-install-riscos::
-	@$(PRINTF) 'Installing RISC OS apps in %s:\n' '$(PREFIX)/apps'
-	@$(PRINTF) '\t%s\t(%s)\n' $(foreach app,$(riscos_apps),'$(app)' '$($(app)_appname)')
-	@$(INSTALL) -d $(PREFIX)/apps
-	@$(TAR) cf - -C out/riscos \
-	  $(foreach app,$(riscos_apps),$($(app)_app:%=$($(app)_appname)/%)) | \
-	  $(TAR) xf - -C $(PREFIX)/apps
+# Set this to the comma-separated list of years that should appear in
+# the licence.  Do not use characters other than [0-9,] - no spaces.
+YEARS=2002-3,2005-6,2012
+
+update-licence:
+	$(FIND) . -name ".svn" -prune -or -type f -print0 | $(XARGS) -0 \
+	$(SED) -i 's/Copyright (C) [0-9,-]\+  Steven Simpson/Copyright (C) $(YEARS)  Steven Simpson/g'
+
+
+tidy::
+	@$(FIND) . -name "*~" -delete
 
 
 ## Generic rules
 
+
+
+## Defaults
+PREFIX ?= /usr/local
+CMP ?= cmp -s
+FIND ?= find
+AR ?= ar
+RANLIB ?= ranlib
+CD ?= cd
+CP ?= cp
+PRINTF ?= printf
+MKDIR ?= mkdir -p
+ZIP ?= zip
+RISCOS_ZIP ?= $(ZIP)
+TAR ?= tar
+INSTALL ?= install
+
+
+
+## Default switches for GCC to generate useful dependencies - We
+## select only user headers (not system), we list each dependency in a
+## dummy rule to deal with deletions, and targets and the file to
+## write the rules in are the first and second arguments.
+DEPARGS.c=-MMD -MP -MT '$(1)' -MF '$(2)'
+DEPARGS.cc=-MMD -MP -MT '$(1)' -MF '$(2)'
+
+
+
+## A command to selectively copy a file if its contents has changed -
+## $1 is the source; $2 is the destination; $3 is a label to print if
+## the copy occurs.
+CPCMP=$(CMP) '$(1)' '$(2)' || ( $(CP) '$(1)' '$(2)' && $(PRINTF) '[Changed]: %s\n' '$(3)' )
+
+
+
+## These are the suffixes that we have to swap with a file's leafname
+## to get the right order for RISC OS.
+RISCOS_SUFFIXES ?= c cc h hh s
+
+
+
+## Get a list of directories in source, so we can generate non-trivial
+## RISC OS rules for each one.
 SOURCE_DIRS:=$(shell $(FIND) src/obj -type d -printf '%P')
 
+
+
+## Get a complete list of binary executables and the object files that
+## make them up.
 BINARIES += $(CBINARIES)
 BINARIES += $(CXXBINARIES)
-
 ALL_OBJECTS=$(sort $(foreach prog,$(BINARIES),$($(prog)_obj)) $(foreach lib,$(LIBRARIES),$($(lib)_mod)))
 
 
 
+## Just use the internal RISC OS app name if an external name isn't
+## defined.
+define RISCOS_APP_DEFS
+$(1)_appname ?= $(1)
+
+endef
+$(foreach app,$(riscos_apps),$(eval $(call RISCOS_APP_DEFS,$(app))))
+
+
+
+
+
+## Make sure we can detect changes to the list of object files that
+## make up each binary executable.
 define PROGOBJLIST_RULES
 tmp/progobjlisted.$(1):
 	@$$(MKDIR) '$$(@D)'
@@ -155,6 +201,7 @@ $(foreach prog,$(BINARIES),$(eval $(call PROGOBJLIST_RULES,$(prog))))
 
 
 
+## Define rules for building each binary executable.
 define LINK_RULE
 out/$(1): tmp/progobjlist.$(1) $$($(1)_obj:%=tmp/obj/%.o)
 	@$$(MKDIR) '$$(@D)'
@@ -171,6 +218,8 @@ $(foreach prog,$(CXXBINARIES),$(eval $(call LINK_RULE,$(prog),cc,C++)))
 
 
 
+## Make sure we can detect changes to the list of object files that
+## make up each binary library.
 define LIBOBJLIST_RULES
 tmp/libobjlisted.$(1):
 	@$$(MKDIR) '$$(@D)'
@@ -190,6 +239,7 @@ $(foreach lib,$(LIBRARIES),$(eval $(call LIBOBJLIST_RULES,$(lib))))
 
 
 
+## Define rules for building each binary library.
 define LIB_RULE
 out/lib$(1).a: tmp/libobjlist.$(1) $$($(1)_mod:%=tmp/obj/%.o)
 	@$$(MKDIR) '$$(@D)'
@@ -205,6 +255,33 @@ $(foreach lib,$(LIBRARIES),$(eval $(call LIB_RULE,$(lib))))
 
 
 
+## Some diagnostic rules
+list-c-opts:
+	@$(PRINTF) '%s\n' '$(CPPFLAGS) $(CFLAGS)'
+
+list-cc-opts:
+	@$(PRINTF) '%s\n' '$(CPPFLAGS) $(CXXFLAGS)'
+
+show-prog-%:
+	@$(PRINTF) 'Binary executable %s:\n' '$*'
+	@$(PRINTF) '  Libraries: %s\n' '$($*_lib)'
+	@$(PRINTF) '  Object: %s\n' $($*_obj)
+
+show-lib-%:
+	@$(PRINTF) 'Binary library %s:\n' '$*'
+	@$(PRINTF) '  Object: %s\n' $($*_mod)
+
+show-progs: $(BINARIES:%=show-prog-%)
+show-libs: $(LIBRARIES:%=show-lib-%)
+
+.PHONY: list-c-opts list-cc-opts
+
+
+
+
+## When C and C++ files are compiled, ensure we keep track of which
+## files were included, and use these generated rules on the next
+## invocation of 'make'.
 tmp/obj/%.o: src/obj/%.c
 	@$(MKDIR) '$(@D)'
 	@$(PRINTF) '[C] %s\n' '$*'
@@ -217,76 +294,85 @@ tmp/obj/%.o: src/obj/%.cc
 
 -include $(ALL_OBJECTS:%=tmp/obj/%.mk)
 
+
+
+## Some basic housekeeping
 tidy::
-	$(FIND) . -name "*~" -delete
 
 clean:: tidy
-	$(RM) -r tmp
+	@$(RM) -r tmp
 
 blank:: clean
-	$(RM) -r out
+	@$(RM) -r out
 
 
-RISCOS_SUFFIXES=c cc h hh s
+
+## Source files of the form foo/bar.h appear on RISC OS filesystems as
+## foo.h.bar (where . is a directory separator).  Knowing the list of
+## source directories, we can generate rules for each one to copy the
+## conventionally named files to RISC OS form.  We also transpose
+## . and /, and add the type suffix, because we're still looking at
+## the files from a Unix point of view.
 
 define RISCOS_APP_SFXDIR_RULES
 out/riscos/$$($(1)_appname)/Library/$(2)$(3)/%,fff: src/obj/$(2)%.$(3)
-	@$$(MKDIR) -p '$$(@D)'
+	@$$(MKDIR) '$$(@D)'
 	@$$(PRINTF) '[Copy RISC OS export] %s <%s%s.%s>\n' '$(1)' '$(2)' '$$*' '$(3)'
 	@$$(CP) "$$<" "$$@"
 
-foo::
-	@echo out/riscos/$$($(1)_appname)/Library/$(2)$(3)/%,fff: src/obj/$(2)%.$(3)
-
 out/riscos/$$($(1)_appname)/Source/$(2)$(3)/%,fff: src/obj/$(2)%.$(3)
-	@$$(MKDIR) -p '$$(@D)'
+	@$$(MKDIR) '$$(@D)'
 	@$$(PRINTF) '[Copy RISC OS source] %s %s%s.%s\n' '$(1)' '$(2)' '$$*' '$(3)'
 	@$$(CP) "$$<" "$$@"
 
 endef
 
 define RISCOS_APP_RULES
-$(1)_appname ?= $(1)
-
 $$(foreach sfx,$$(RISCOS_SUFFIXES),$$(eval $$(call RISCOS_APP_SFXDIR_RULES,$(1),,$$(sfx)))$$(foreach dir,$$(SOURCE_DIRS),$$(eval $$(call RISCOS_APP_SFXDIR_RULES,$(1),$$(dir)/,$$(sfx)))))
 
 out/riscos/$$($(1)_appname)/%,faf: docs/%.html
-	@$$(MKDIR) -p '$$(@D)'
+	@$$(MKDIR) '$$(@D)'
 	@$$(PRINTF) '[Copy RISC OS HTML] %s %s\n' '$(1)' '$$*'
 	@$$(CP) "$$<" "$$@"
 
 out/riscos/$$($(1)_appname)/%,fff: docs/%
-	@$$(MKDIR) -p '$$(@D)'
+	@$$(MKDIR) '$$(@D)'
 	@$$(PRINTF) '[Copy RISC OS text] %s %s\n' '$(1)' '$$*'
 	@$$(CP) "$$<" "$$@"
 
 out/riscos/$$($(1)_appname)/Library/o/%,ffd: out/lib%.a
-	@$$(MKDIR) -p '$$(@D)'
+	@$$(MKDIR) '$$(@D)'
 	@$$(PRINTF) '[Copy RISC OS export] %s lib%s.a\n' '$(1)' '$$*'
 	@$$(CP) "$$<" "$$@"
 
 out/riscos/$$($(1)_appname)/%: src/riscos/$(1)/%
-	@$$(MKDIR) -p '$$(@D)'
+	@$$(MKDIR) '$$(@D)'
 	@$$(PRINTF) '[Copy RISC OS file] %s %s\n' '$(1)' '$$*'
 	@$$(CP) "$$<" "$$@"
 
 out/$(1)-riscos.zip: $$($(1)_app:%=out/riscos/$$($(1)_appname)/%)
-	@$$(MKDIR) -p '$$(@D)'
+	@$$(MKDIR) '$$(@D)'
 	@$$(PRINTF) '[RISC OS zip] %s\n' '$(1)'
 	@$$(RM) '$$@'
 	@$$(CD) out/riscos ; \
-	$$(ZIP) -rq '$$(abspath $$@)' $$($(1)_app:%=$$($(1)_appname)/%)
+	$$(RISCOS_ZIP) -rq '$$(abspath $$@)' $$($(1)_app:%=$$($(1)_appname)/%)
 
 endef
 
 $(foreach app,$(riscos_apps),$(eval $(call RISCOS_APP_RULES,$(app))))
 
 
-# Set this to the comma-separated list of years that should appear in
-# the licence.  Do not use characters other than [0-9,] - no spaces.
-YEARS=2002-3,2005-6,2012
+## Standard installation rules
+install-libraries:
+	@$(PRINTF) 'Installing libraries in %s:\n' '$(PREFIX)/lib'
+	@$(PRINTF) '\t%s\n' $(LIBRARIES)
+	@$(INSTALL) -d $(PREFIX)/lib
+	@$(INSTALL) -m 0644 $(LIBRARIES:%=out/lib%.a) $(PREFIX)/lib
 
-update-licence:
-	$(FIND) . -name ".svn" -prune -or -type f -print0 | $(XARGS) -0 \
-	$(SED) -i 's/Copyright (C) [0-9,-]\+  Steven Simpson/Copyright (C) $(YEARS)  Steven Simpson/g'
-
+install-riscos::
+	@$(PRINTF) 'Installing RISC OS apps in %s:\n' '$(PREFIX)/apps'
+	@$(PRINTF) '\t%s\t(%s)\n' $(foreach app,$(riscos_apps),'$(app)' '$($(app)_appname)')
+	@$(INSTALL) -d $(PREFIX)/apps
+	@$(TAR) cf - -C out/riscos \
+	  $(foreach app,$(riscos_apps),$($(app)_app:%=$($(app)_appname)/%)) | \
+	  $(TAR) xf - -C $(PREFIX)/apps
