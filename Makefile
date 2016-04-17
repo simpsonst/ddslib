@@ -231,7 +231,7 @@ out/riscos/$(ddslib_appname)/%,fff: docs/%
 	@$(PRINTF) '[Copy RISC OS Plain text] %s\n' '$*'
 	@$(CP) "$<" "$@"
 
-out/riscos/%: riscos/%
+out/riscos/%: src/riscos/%
 	@$(MKDIR) -p '$(@D)'
 	@$(PRINTF) '[Copy RISC OS file] %s\n' '$*'
 	@$(CP) "$<" "$@"
