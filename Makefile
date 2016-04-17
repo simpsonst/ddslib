@@ -1,7 +1,6 @@
 all::
 
 PRINTF=printf
-INSTALL=install
 FIND=find
 SED=sed
 XARGS=xargs
@@ -24,10 +23,10 @@ CBINARIES += testree
 
 LIBRARIES += ddslib
 
-HEADERS += dllist.h
-HEADERS += btree.h
-HEADERS += bheap.h
-HEADERS += internal.h
+DDSLIB_HEADERS += dllist.h
+DDSLIB_HEADERS += btree.h
+DDSLIB_HEADERS += bheap.h
+DDSLIB_HEADERS += internal.h
 
 COMPAT_HEADERS += dllist.h
 COMPAT_HEADERS += btree.h
@@ -36,9 +35,9 @@ COMPAT_HEADERS += bheap.h
 ddslib_mod += bheap
 
 ifneq ($(filter true t y yes on 1,$(call lc,$(ENABLE_C99))),)
-HEADERS += vstr.h
-HEADERS += vwcs.h
-HEADERS += htab.h
+DDSLIB_HEADERS += vstr.h
+DDSLIB_HEADERS += vwcs.h
+DDSLIB_HEADERS += htab.h
 
 ddslib_mod += htab
 ddslib_mod += vstr
@@ -46,8 +45,11 @@ ddslib_mod += vwcs
 endif
 
 ifneq ($(filter true t y yes on 1,$(call lc,$(ENABLE_CXX))),)
-HEADERS += dllist.hh
+DDSLIB_HEADERS += dllist.hh
 endif
+
+HEADERS += $(DDSLIB_HEADERS:%=ddslib/%)
+HEADERS += $(COMPAT_HEADERS)
 
 testheap_obj += testheap
 testheap_obj += bheap
@@ -64,7 +66,7 @@ ddslib_appname=!DDSLib
 
 c=,
 
-SOURCES=$(filter-out $(HEADERS:%=ddslib/%) $(COMPAT_HEADERS),$(patsubst src/obj/%,%,$(wildcard src/obj/*.c src/obj/*.h src/obj/ddslib/*.h)))
+SOURCES=$(filter-out $(HEADERS),$(patsubst src/obj/%,%,$(wildcard src/obj/*.c src/obj/*.h src/obj/ddslib/*.h)))
 
 ddslib_app += !Boot,feb
 ddslib_app += README,faf
@@ -72,8 +74,8 @@ ddslib_app += COPYING,fff
 ddslib_app += VERSION,fff
 ddslib_app += HISTORY,fff
 ddslib_app += $(COMPAT_HEADERS:%.h=Library/h/%,fff)
-ddslib_app += $(patsubst %.h,Library/ddslib/h/%$cfff,$(filter %.h,$(HEADERS)))
-ddslib_app += $(patsubst %.hh,Library/ddslib/hh/%$cfff,$(filter %.hh,$(HEADERS)))
+ddslib_app += $(patsubst %.h,Library/ddslib/h/%$cfff,$(filter %.h,$(DDSLIB_HEADERS)))
+ddslib_app += $(patsubst %.hh,Library/ddslib/hh/%$cfff,$(filter %.hh,$(DDSLIB_HEADERS)))
 ddslib_app += $(patsubst %.c,Source/c/%$cfff,$(filter %.c,$(SOURCES)))
 ddslib_app += $(patsubst %.h,Source/h/%$cfff,$(filter %.h,$(SOURCES)))
 ddslib_app += $(LIBRARIES:%=Library/o/%,ffd)
@@ -87,15 +89,6 @@ ifneq ($(filter true t y yes on 1,$(call lc,$(ENABLE_RISCOS))),)
 install:: install-riscos
 all:: out/ddslib-riscos.zip
 endif
-
-install-headers:
-	@$(PRINTF) 'Installing headers in %s:\n' '$(PREFIX)/include'
-	@$(PRINTF) '\t<%s>\n' $(HEADERS:%=ddslib/%) $(COMPAT_HEADERS)
-	@$(INSTALL) -d $(PREFIX)/include/ddslib
-	@$(INSTALL) -m 0644 $(HEADERS:%=src/obj/ddslib/%) \
-	  $(PREFIX)/include/ddslib
-	@$(INSTALL) -m 0644 $(COMPAT_HEADERS:%=src/obj/%) \
-	  $(PREFIX)/include
 
 
 # Set this to the comma-separated list of years that should appear in
@@ -376,3 +369,38 @@ install-riscos::
 	@$(TAR) cf - -C out/riscos \
 	  $(foreach app,$(riscos_apps),$($(app)_app:%=$($(app)_appname)/%)) | \
 	  $(TAR) xf - -C $(PREFIX)/apps
+
+## Find all the directories that contain headers to be installed.
+## Headers that are not listed under directories yield "./".
+HEADER_DIRS=$(sort $(dir $(HEADERS)))
+
+## Rename the headers so that those not listed under directories are
+## prefixed with "./", so that we can match them.  For example
+## "foo/bar.h" remains unchanged, but "bar.h" becomes "./bar.h".
+ALT_HEADERS=$(join $(dir $(HEADERS)),$(notdir $(HEADERS)))
+
+## Get the list of headers under a directory.  Use "./" for the top
+## level.  Use "foo/" for everything else.
+HDRSUNDIR=$(patsubst $(1)%,%,$(filter $(1)%,$(ALT_HEADERS)))
+
+## Get the list of headers that are direct descendants of a directory.
+## We take the list of headers *under* the directory, and then remove
+## only those that have no directory component.
+HDRSINDIR=$(filter $(notdir $(call HDRSUNDIR,$(1))),$(call HDRSUNDIR,$(1)))
+
+## Install headers that are direct descendants of a directory.  The
+## directory name must have a trailing slash.  Use "./" for the top
+## level.
+define HEADER_INSTALL_COMMANDS
+$(INSTALL) -d '$(PREFIX)/include/$1'
+$(INSTALL) -m 0644 $(foreach file,$(call HDRSINDIR,$1),src/obj/$1$(file)) \
+  '$(PREFIX)/include/$1'
+
+endef
+
+## Install the headers.  Everything in $(HEADERS) from src/obj/ is
+## copied to $(PREFIX)/include, preserving the hierarchy.
+install-headers:
+	@$(PRINTF) 'Installing headers in %s:\n' '$(PREFIX)/include'
+	@$(PRINTF) '\t<%s>\n' $(HEADERS)
+	@$(foreach dir,$(HEADER_DIRS),$(call HEADER_INSTALL_COMMANDS,$(dir)))
