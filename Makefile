@@ -73,12 +73,11 @@ testvstr_obj += vstr
 testvstr_obj += vwcs
 
 riscos_apps += ddslib
+ddslib_appname=!DDSLib
 
 c=,
 
 SOURCES=$(filter-out $(HEADERS:%=ddslib/%) $(COMPAT_HEADERS),$(patsubst src/obj/%,%,$(wildcard src/obj/*.c src/obj/*.h src/obj/ddslib/*.h)))
-
-ddslib_appname=!DDSLib
 
 ddslib_app += !Boot,feb
 ddslib_app += README,faf
@@ -128,6 +127,8 @@ install-riscos::
 
 ## Generic rules
 
+SOURCE_DIRS:=$(shell $(FIND) src/obj -type d -printf '%P')
+
 BINARIES += $(CBINARIES)
 BINARIES += $(CXXBINARIES)
 
@@ -144,6 +145,16 @@ tmp/progobjlist.$(1): | tmp/progobjlisted.$(1)
 
 endef
 
+.IDLE: $(BINARIES:%=tmp/progobjlisted.%)
+.IDLE: $(BINARIES:%=tmp/progobjlist.%)
+
+tmp/progobjlist.%: tmp/progobjlisted.%
+	@$(call CPCMP,$@-tmp,$@,$* object list)
+
+$(foreach prog,$(BINARIES),$(eval $(call PROGOBJLIST_RULES,$(prog))))
+
+
+
 define LINK_RULE
 out/$(1): tmp/progobjlist.$(1) $$($(1)_obj:%=tmp/obj/%.o)
 	@$$(MKDIR) '$$(@D)'
@@ -153,14 +164,6 @@ out/$(1): tmp/progobjlist.$(1) $$($(1)_obj:%=tmp/obj/%.o)
 	@$$(LINK.$(2)) -o '$$@' $$($(1)_obj:%=tmp/obj/%.o) $$($(1)_lib)
 
 endef
-
-.IDLE: $(BINARIES:%=tmp/progobjlisted.%)
-.IDLE: $(BINARIES:%=tmp/progobjlist.%)
-
-tmp/progobjlist.%: tmp/progobjlisted.%
-	@$(call CPCMP,$@-tmp,$@,$* object list)
-
-$(foreach prog,$(BINARIES),$(eval $(call PROGOBJLIST_RULES,$(prog))))
 
 $(foreach prog,$(CBINARIES),$(eval $(call LINK_RULE,$(prog),c,C)))
 
@@ -177,6 +180,16 @@ tmp/libobjlist.$(1): | tmp/libobjlisted.$(1)
 
 endef
 
+.IDLE: $(BINARIES:%=tmp/libobjlisted.%)
+.IDLE: $(BINARIES:%=tmp/libobjlist.%)
+
+tmp/libobjlist.%: tmp/libobjlisted.%
+	@$(call CPCMP,$@-tmp,$@,$* object list)
+
+$(foreach lib,$(LIBRARIES),$(eval $(call LIBOBJLIST_RULES,$(lib))))
+
+
+
 define LIB_RULE
 out/lib$(1).a: tmp/libobjlist.$(1) $$($(1)_mod:%=tmp/obj/%.o)
 	@$$(MKDIR) '$$(@D)'
@@ -187,14 +200,6 @@ out/lib$(1).a: tmp/libobjlist.$(1) $$($(1)_mod:%=tmp/obj/%.o)
 	@$$(RANLIB) '$$@'
 
 endef
-
-.IDLE: $(BINARIES:%=tmp/libobjlisted.%)
-.IDLE: $(BINARIES:%=tmp/libobjlist.%)
-
-tmp/libobjlist.%: tmp/libobjlisted.%
-	@$(call CPCMP,$@-tmp,$@,$* object list)
-
-$(foreach lib,$(LIBRARIES),$(eval $(call LIBOBJLIST_RULES,$(lib))))
 
 $(foreach lib,$(LIBRARIES),$(eval $(call LIB_RULE,$(lib))))
 
@@ -221,62 +226,60 @@ clean:: tidy
 blank:: clean
 	$(RM) -r out
 
-out/riscos/$(ddslib_appname)/%,faf: docs/%.html
-	@$(MKDIR) -p '$(@D)'
-	@$(PRINTF) '[Copy RISC OS HTML] %s\n' '$*'
-	@$(CP) "$<" "$@"
 
-out/riscos/$(ddslib_appname)/%,fff: docs/%
-	@$(MKDIR) -p '$(@D)'
-	@$(PRINTF) '[Copy RISC OS Plain text] %s\n' '$*'
-	@$(CP) "$<" "$@"
+RISCOS_SUFFIXES=c cc h hh s
 
-out/riscos/%: src/riscos/%
-	@$(MKDIR) -p '$(@D)'
-	@$(PRINTF) '[Copy RISC OS file] %s\n' '$*'
-	@$(CP) "$<" "$@"
+define RISCOS_APP_SFXDIR_RULES
+out/riscos/$$($(1)_appname)/Library/$(2)$(3)/%,fff: src/obj/$(2)%.$(3)
+	@$$(MKDIR) -p '$$(@D)'
+	@$$(PRINTF) '[Copy RISC OS export] %s <%s%s.%s>\n' '$(1)' '$(2)' '$$*' '$(3)'
+	@$$(CP) "$$<" "$$@"
 
-out/riscos/$(ddslib_appname)/Library/h/%,fff: src/obj/%.h
-	@$(MKDIR) -p '$(@D)'
-	@$(PRINTF) '[Copy RISC OS export] %s.h\n' '$*'
-	@$(CP) "$<" "$@"
+foo::
+	@echo out/riscos/$$($(1)_appname)/Library/$(2)$(3)/%,fff: src/obj/$(2)%.$(3)
 
-out/riscos/$(ddslib_appname)/Library/ddslib/h/%,fff: src/obj/ddslib/%.h
-	@$(MKDIR) -p '$(@D)'
-	@$(PRINTF) '[Copy RISC OS export] ddslib/%s.h\n' '$*'
-	@$(CP) "$<" "$@"
+out/riscos/$$($(1)_appname)/Source/$(2)$(3)/%,fff: src/obj/$(2)%.$(3)
+	@$$(MKDIR) -p '$$(@D)'
+	@$$(PRINTF) '[Copy RISC OS source] %s %s%s.%s\n' '$(1)' '$(2)' '$$*' '$(3)'
+	@$$(CP) "$$<" "$$@"
 
-out/riscos/$(ddslib_appname)/Library/ddslib/hh/%,fff: src/obj/ddslib/%.hh
-	@$(MKDIR) -p '$(@D)'
-	@$(PRINTF) '[Copy RISC OS export] ddslib/%s.hh\n' '$*'
-	@$(CP) "$<" "$@"
+endef
 
-out/riscos/$(ddslib_appname)/Source/c/%,fff: src/obj/%.c
-	@$(MKDIR) -p '$(@D)'
-	@$(PRINTF) '[Copy RISC OS source] %s.c\n' '$*'
-	@$(CP) "$<" "$@"
+define RISCOS_APP_RULES
+$(1)_appname ?= $(1)
 
-out/riscos/$(ddslib_appname)/Source/h/%,fff: src/obj/%.h
-	@$(MKDIR) -p '$(@D)'
-	@$(PRINTF) '[Copy RISC OS source] %s.h\n' '$*'
-	@$(CP) "$<" "$@"
+$$(foreach sfx,$$(RISCOS_SUFFIXES),$$(eval $$(call RISCOS_APP_SFXDIR_RULES,$(1),,$$(sfx)))$$(foreach dir,$$(SOURCE_DIRS),$$(eval $$(call RISCOS_APP_SFXDIR_RULES,$(1),$$(dir)/,$$(sfx)))))
 
-out/riscos/$(ddslib_appname)/Source/hh/%,fff: src/obj/%.hh
-	@$(MKDIR) -p '$(@D)'
-	@$(PRINTF) '[Copy RISC OS source] %s.hh\n' '$*'
-	@$(CP) "$<" "$@"
+out/riscos/$$($(1)_appname)/%,faf: docs/%.html
+	@$$(MKDIR) -p '$$(@D)'
+	@$$(PRINTF) '[Copy RISC OS HTML] %s %s\n' '$(1)' '$$*'
+	@$$(CP) "$$<" "$$@"
 
-out/riscos/$(ddslib_appname)/Library/o/%,ffd: out/lib%.a
-	@$(MKDIR) -p '$(@D)'
-	@$(PRINTF) '[Copy RISC OS export] lib%s.a\n' '$*'
-	@$(CP) "$<" "$@"
+out/riscos/$$($(1)_appname)/%,fff: docs/%
+	@$$(MKDIR) -p '$$(@D)'
+	@$$(PRINTF) '[Copy RISC OS text] %s %s\n' '$(1)' '$$*'
+	@$$(CP) "$$<" "$$@"
 
-out/ddslib-riscos.zip: $(ddslib_app:%=out/riscos/$(ddslib_appname)/%)
-	@$(MKDIR) -p '$(@D)'
-	@$(PRINTF) '[RISC OS zip] %s\n' 'ddslib'
-	@$(RM) '$@'
-	@$(CD) out/riscos ; \
-	$(ZIP) -rq '$(abspath $@)' $(ddslib_app:%=$(ddslib_appname)/%)
+out/riscos/$$($(1)_appname)/Library/o/%,ffd: out/lib%.a
+	@$$(MKDIR) -p '$$(@D)'
+	@$$(PRINTF) '[Copy RISC OS export] %s lib%s.a\n' '$(1)' '$$*'
+	@$$(CP) "$$<" "$$@"
+
+out/riscos/$$($(1)_appname)/%: src/riscos/$(1)/%
+	@$$(MKDIR) -p '$$(@D)'
+	@$$(PRINTF) '[Copy RISC OS file] %s %s\n' '$(1)' '$$*'
+	@$$(CP) "$$<" "$$@"
+
+out/$(1)-riscos.zip: $$($(1)_app:%=out/riscos/$$($(1)_appname)/%)
+	@$$(MKDIR) -p '$$(@D)'
+	@$$(PRINTF) '[RISC OS zip] %s\n' '$(1)'
+	@$$(RM) '$$@'
+	@$$(CD) out/riscos ; \
+	$$(ZIP) -rq '$$(abspath $$@)' $$($(1)_app:%=$$($(1)_appname)/%)
+
+endef
+
+$(foreach app,$(riscos_apps),$(eval $(call RISCOS_APP_RULES,$(app))))
 
 
 # Set this to the comma-separated list of years that should appear in
