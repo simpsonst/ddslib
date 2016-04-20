@@ -64,7 +64,7 @@ testvstr_obj += vwcs
 riscos_zips += ddslib
 ddslib_appname=!DDSLib
 
-SOURCES=$(filter-out $(headers),$(shell $(FIND) src/obj \( -name "*.c" -o -name "*.h" -o -name "*.hh" \) -printf '%P\n'))
+SOURCES:=$(filter-out $(headers),$(shell $(FIND) src/obj \( -name "*.c" -o -name "*.h" -o -name "*.hh" \) -printf '%P\n'))
 
 ddslib_rof += !Boot,feb
 ddslib_rof += README,faf
