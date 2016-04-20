@@ -82,7 +82,7 @@ ddslib_rof += $(libraries:%=Library/o/%,ffd)
 
 include binodeps.mk
 
-all:: $(libraries:%=out/lib%.a)
+all:: installed-libraries
 
 install:: install-headers install-libraries
 
