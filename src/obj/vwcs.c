@@ -42,6 +42,14 @@ static int dummy(wchar_t *buf, size_t len, const wchar_t *fmt, va_list ap)
 {
   return -1;
 }
+
+#elif defined __WIN32__
+/* The Windows declaration of vswprintf is not C95-compliant, but it
+   does declare something with identical functionality under a
+   different name. */
+#define MODE 1
+#define PRINT _vsnwprintf
+
 #else
 #define MODE 1
 #define PRINT vswprintf
