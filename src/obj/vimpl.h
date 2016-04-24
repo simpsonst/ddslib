@@ -732,5 +732,5 @@
       return rc;							\
   }									\
 									\
-  struct PFX ## _dummy							\
+  struct tm								\
 
