@@ -56,7 +56,12 @@ struct entry {
    fail? */
 static htab_const *get_const(htab_obj *p)
 {
-  return (htab_const *) p;
+  union {
+    htab_obj *nc;
+    htab_const *c;
+  } var;
+  var.nc = p;
+  return var.c;
 }
 
 htab htab_open(size_t n, void *ctxt,
