@@ -194,9 +194,6 @@ static inline struct entry **find_ptr(htab self, htab_const key)
   size_t hv = (*self->hash)(self->ctxt, key);
   hv %= self->len;
   res = &self->base[hv];
-  /* The cast causes GCC to warn about breaking strict-aliasing rules,
-     but the only difference is that one of the structure fields is
-     constant.  That shouldn't cause a problem, should it? */
   while (*res && (*self->cmp)(self->ctxt, key, *get_const(&(*res)->key)))
     res = &(*res)->next;
   return res;
@@ -272,10 +269,6 @@ void htab_apply(htab self, void *ctxt,
   for (size_t i = 0; i < self->len; i++) {
     struct entry *n, *e, **eh = &self->base[i];
     for (e = *eh; e && (n = e->next, true); e = n) {
-      /* The cast causes GCC to warn about breaking strict-aliasing
-	 rules, but the only difference is that one of the structure
-	 fields is constant.  That shouldn't cause a problem, should
-	 it? */
       htab_apprc rc = (*op)(ctxt, *get_const(&e->key), e->value);
       if (rc & htab_REMOVE) {
 	if (self->release_value)
