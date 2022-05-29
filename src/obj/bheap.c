@@ -1,24 +1,27 @@
+// -*- c-basic-offset: 2; indent-tabs-mode: nil -*-
+
 /*
-    DDSLib: Dynamic data structures
-    Copyright (C) 2002-3,2005-6,2012,2016  Steven Simpson
-
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
-
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
-
-    Author contact: Email to s.simpson at lancaster.ac.uk
-*/
+ * DDSLib: Dynamic data structures
+ * Copyright (C) 2002-3,2005-6,2012,2016  Steven Simpson
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+ * USA
+ *
+ *
+ * Author contact: Email to s.simpson at lancaster.ac.uk
+ */
 
 #include <stdio.h>
 #include <assert.h>
@@ -27,8 +30,8 @@
 
 #define get_elem(R,O) ((bheap_elem *) &(R)->memb[(char *) (O)])
 
-#define fix_holder(R,M,N) \
-if ((M)->child[N]) get_elem((R),(M)->child[N])->holder = &(M)->child[N]
+#define fix_holder(R,M,N)                                               \
+  if ((M)->child[N]) get_elem((R),(M)->child[N])->holder = &(M)->child[N]
 
 static void swap(bheap *r, void *p, void *q)
 {
@@ -97,9 +100,9 @@ static int swap_with_child(bheap *r, void *p, int n)
   if (!q || (*r->cmp)(r->ctxt, q, p) > 0) return 0;
 #ifdef DEBUG
   fprintf(stderr, "Swapping %p (%s)",
-	  p, r->print ? r->print(r->ctxt, p) : "");
+          p, r->print ? r->print(r->ctxt, p) : "");
   fprintf(stderr, " with child %d (%p; %s)...\n", n, q,
-	  r->print ? r->print(r->ctxt, q) : "");
+          r->print ? r->print(r->ctxt, q) : "");
 #endif
   swap(r, p, q);
   return 1;
@@ -159,7 +162,7 @@ static void find_last(bheap *r)
   for ( ; ; ) {
 #ifdef DEBUG
     fprintf(stderr, "Seeking from %p (%s)...\n", n,
-	    r->print ? r->print(r->ctxt, n) : "");
+            r->print ? r->print(r->ctxt, n) : "");
 #endif
     nm = get_elem(r, n);
     p = nm->parent;
@@ -174,7 +177,7 @@ static void find_last(bheap *r)
     if (i) {
 #ifdef DEBUG
       fprintf(stderr, "\tWe're the right child of %p (%s)!\n", p,
-	      r->print ? r->print(r->ctxt, p) : "");
+              r->print ? r->print(r->ctxt, p) : "");
 #endif
       n = pm->child[0];
       break;
@@ -185,8 +188,8 @@ static void find_last(bheap *r)
   while (nm = get_elem(r, n), nm->child[0] || nm->child[1]) {
 #ifdef DEBUG
     fprintf(stderr, "%p (%s) down %s to\n", n,
-	    r->print ? r->print(r->ctxt, n) : "",
-	    nm->child[1] ? "right" : "left");
+            r->print ? r->print(r->ctxt, n) : "",
+            nm->child[1] ? "right" : "left");
 #endif
     n = nm->child[!!nm->child[1]];
   }
@@ -282,9 +285,9 @@ static void print_branch(FILE *out, bheap *r, void *elem)
 
   em = get_elem(r, elem);
   fprintf(out, "%p (%s): parent=%p, c[0]=%p, c[1]=%p, holder=%p\n",
-	  elem, r->print ? r->print(r->ctxt, elem) : "",
-	  em->parent, em->child[0], em->child[1],
-	  (void *) em->holder);
+          elem, r->print ? r->print(r->ctxt, elem) : "",
+          em->parent, em->child[0], em->child[1],
+          (void *) em->holder);
 
   print_branch(out, r, em->child[0]);
   print_branch(out, r, em->child[1]);
@@ -299,8 +302,8 @@ void bheap_debug(bheap *r, int flags)
   }
   fprintf(stderr, "Size: %lu\n", (unsigned long) r->size);
   fprintf(stderr, "First: %p (%s)", r->first,
-	  r->print ? r->print(r->ctxt, r->first) : "");
+          r->print ? r->print(r->ctxt, r->first) : "");
   fprintf(stderr, "; last: %p (%s)\n", r->last,
-	  r->print ? r->print(r->ctxt, r->last) : "");
+          r->print ? r->print(r->ctxt, r->last) : "");
   print_branch(stderr, r, r->first);
 }

@@ -1,24 +1,27 @@
+// -*- c-basic-offset: 2; indent-tabs-mode: nil -*-
+
 /*
-    DDSLib: Dynamic data structures
-    Copyright (C) 2002-3,2005-6,2012,2016  Steven Simpson
-
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
-
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
-
-    Author contact: Email to s.simpson at lancaster.ac.uk
-*/
+ * DDSLib: Dynamic data structures
+ * Copyright (C) 2002-3,2005-6,2012,2016  Steven Simpson
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+ * USA
+ *
+ *
+ * Author contact: Email to s.simpson at lancaster.ac.uk
+ */
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -65,12 +68,12 @@ static htab_const *get_const(htab_obj *p)
 }
 
 htab htab_open(size_t n, void *ctxt,
-	       size_t (*hash)(void *, htab_const),
-	       int (*cmp)(void *, htab_const, htab_const),
-	       htab_obj (*copy_key)(void *ctxt, htab_const),
-	       htab_obj (*copy_value)(void *ctxt, htab_const),
-	       void (*release_key)(void *ctxt, htab_obj),
-	       void (*release_value)(void *ctxt, htab_obj val))
+               size_t (*hash)(void *, htab_const),
+               int (*cmp)(void *, htab_const, htab_const),
+               htab_obj (*copy_key)(void *ctxt, htab_const),
+               htab_obj (*copy_value)(void *ctxt, htab_const),
+               void (*release_key)(void *ctxt, htab_obj),
+               void (*release_value)(void *ctxt, htab_obj val))
 {
   size_t i;
 
@@ -105,9 +108,9 @@ void htab_close(htab self)
     struct entry *n, *e;
     for (e = self->base[i]; e && (n = e->next, true); e = n) {
       if (self->release_value)
-	(*self->release_value)(self->ctxt, e->value);
+        (*self->release_value)(self->ctxt, e->value);
       if (self->release_key)
-	(*self->release_key)(self->ctxt, e->key);
+        (*self->release_key)(self->ctxt, e->key);
       free(e);
     }
     self->base[i] = NULL;
@@ -264,23 +267,23 @@ _Bool htab_put(htab self, htab_const key, htab_const val)
 }
 
 void htab_apply(htab self, void *ctxt,
-		htab_apprc (*op)(void *, htab_const, htab_obj))
+                htab_apprc (*op)(void *, htab_const, htab_obj))
 {
   for (size_t i = 0; i < self->len; i++) {
     struct entry *n, *e, **eh = &self->base[i];
     for (e = *eh; e && (n = e->next, true); e = n) {
       htab_apprc rc = (*op)(ctxt, *get_const(&e->key), e->value);
       if (rc & htab_REMOVE) {
-	if (self->release_value)
-	  (*self->release_value)(self->ctxt, e->value);
-	if (self->release_key)
-	  (*self->release_key)(self->ctxt, e->key);
-	free(e);
-	*eh = n;
+        if (self->release_value)
+          (*self->release_value)(self->ctxt, e->value);
+        if (self->release_key)
+          (*self->release_key)(self->ctxt, e->key);
+        free(e);
+        *eh = n;
       } else
-	eh = &e->next;
+        eh = &e->next;
       if (rc & htab_STOP)
-	return;
+        return;
     }
   }
 }
@@ -289,12 +292,12 @@ htab_DEFN(sp, const char *, void *, void *, pointer, pointer, NULL);
 htab_DEFN(ss, const char *, char *, const char *, pointer, pointer, NULL);
 htab_DEFN(wp, const wchar_t *, void *, void *, pointer, pointer, NULL);
 htab_DEFN(ww, const wchar_t *, wchar_t *, const wchar_t *,
-	  pointer, pointer, NULL);
+          pointer, pointer, NULL);
 htab_DEFN(ws, const wchar_t *, char *, const char *, pointer, pointer, NULL);
 htab_DEFN(sw, const char *, wchar_t *, const wchar_t *,
-	  pointer, pointer, NULL);
+          pointer, pointer, NULL);
 htab_DEFN(pp, const void *, void *, void *, pointer, pointer, NULL);
 htab_DEFN(wu, const wchar_t *, uintmax_t, uintmax_t,
-	  pointer, unsigned_integer, 0);
+          pointer, unsigned_integer, 0);
 htab_DEFN(su, const char *, uintmax_t, uintmax_t,
-	  pointer, unsigned_integer, 0);
+          pointer, unsigned_integer, 0);
