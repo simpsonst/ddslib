@@ -12,9 +12,15 @@ ENABLE_C99=yes
 INSTALL_PATH=/usr/local
 PREFIX=$(INSTALL_PATH)
 
+## Provide a version of $(abspath) that can cope with spaces in the
+## current directory.
+myblank:=
+myspace:=$(myblank) $(myblank)
+MYCURDIR:=$(subst $(myspace),\$(myspace),$(CURDIR)/)
+MYABSPATH=$(foreach f,$1,$(if $(patsubst /%,,$f),$(MYCURDIR)$f,$f))
+
+-include $(call MYABSPATH,config.mk)
 -include ddslib-env.mk
--include $(abspath excluded-config.mk)
--include $(abspath config.mk)
 
 lc=$(subst A,a,$(subst B,b,$(subst C,c,$(subst D,d,$(subst E,e,$(subst F,f,$(subst G,g,$(subst H,h,$(subst I,i,$(subst J,j,$(subst K,k,$(subst L,l,$(subst M,m,$(subst N,n,$(subst O,o,$(subst P,p,$(subst Q,q,$(subst R,r,$(subst S,s,$(subst T,t,$(subst U,u,$(subst V,v,$(subst W,w,$(subst X,x,$(subst Y,y,$(subst Z,z,$1))))))))))))))))))))))))))
 
@@ -69,10 +75,10 @@ ddslib_appname=!DDSLib
 SOURCES:=$(filter-out $(headers),$(shell $(FIND) src/obj \( -name "*.c" -o -name "*.h" -o -name "*.hh" \) -printf '%P\n'))
 
 ddslib_rof += !Boot,feb
-ddslib_rof += README,faf
+ddslib_rof += README,fff
 ddslib_rof += COPYING,fff
-ddslib_rof += VERSION,fff
-ddslib_rof += HISTORY,fff
+#ddslib_rof += VERSION,fff
+#ddslib_rof += HISTORY,fff
 ddslib_rof += $(call riscos_hdr,$(headers))
 ddslib_rof += $(call riscos_src,$(SOURCES))
 ddslib_rof += $(call riscos_lib,$(libraries))
@@ -88,13 +94,20 @@ install:: install-riscos
 all:: out/ddslib-riscos.zip
 endif
 
+$(BINODEPS_OUTDIR)/riscos/!DDSLib/README,fff: README.md
+	$(MKDIR) "$(@D)"
+	$(CP) "$<" "$@"
 
-prepare-version::
-	@$(ECHO) $(VERSION) > docs/excluded-VERSION
+$(BINODEPS_OUTDIR)/riscos/!DDSLib/COPYING,fff: LICENSE.txt
+	$(MKDIR) "$(@D)"
+	$(CP) "$<" "$@"
 
-docs/excluded-VERSION: | prepare-version
-docs/VERSION: docs/excluded-VERSION
-	@$(CMP) -s '$<' '$@' || $(CP) '$<' '$@'
+# prepare-version::
+# 	@$(ECHO) $(VERSION) > docs/excluded-VERSION
+
+# docs/excluded-VERSION: | prepare-version
+# docs/VERSION: docs/excluded-VERSION
+# 	@$(CMP) -s '$<' '$@' || $(CP) '$<' '$@'
 
 # Set this to the comma-separated list of years that should appear in
 # the licence.  Do not use characters other than [0-9,] - no spaces.
