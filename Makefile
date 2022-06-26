@@ -4,6 +4,7 @@ PRINTF=printf
 FIND=find
 SED=sed
 XARGS=xargs
+GETVERSION=git describe
 
 ENABLE_CXX=yes
 ENABLE_C99=yes
@@ -11,6 +12,8 @@ ENABLE_C99=yes
 ## INSTALL_PATH is deprecated.
 INSTALL_PATH=/usr/local
 PREFIX=$(INSTALL_PATH)
+
+VERSION:=$(shell $(GETVERSION) 2> /dev/null)
 
 ## Provide a version of $(abspath) that can cope with spaces in the
 ## current directory.
@@ -77,7 +80,7 @@ SOURCES:=$(filter-out $(headers),$(shell $(FIND) src/obj \( -name "*.c" -o -name
 ddslib_rof += !Boot,feb
 ddslib_rof += README,fff
 ddslib_rof += COPYING,fff
-#ddslib_rof += VERSION,fff
+ddslib_rof += VERSION,fff
 #ddslib_rof += HISTORY,fff
 ddslib_rof += $(call riscos_hdr,$(headers))
 ddslib_rof += $(call riscos_src,$(SOURCES))
@@ -102,12 +105,19 @@ $(BINODEPS_OUTDIR)/riscos/!DDSLib/COPYING,fff: LICENSE.txt
 	$(MKDIR) "$(@D)"
 	$(CP) "$<" "$@"
 
-# prepare-version::
-# 	@$(ECHO) $(VERSION) > docs/excluded-VERSION
+$(BINODEPS_OUTDIR)/riscos/!DDSLib/VERSION,fff: VERSION
+	$(MKDIR) "$(@D)"
+	$(CP) "$<" "$@"
 
-# docs/excluded-VERSION: | prepare-version
-# docs/VERSION: docs/excluded-VERSION
-# 	@$(CMP) -s '$<' '$@' || $(CP) '$<' '$@'
+ifneq ($(VERSION),)
+prepare-version::
+	@$(MKDIR) tmp/
+	@$(ECHO) $(VERSION) > tmp/VERSION
+
+tmp/VERSION: | prepare-version
+VERSION: tmp/VERSION
+	@$(CMP) -s '$<' '$@' || $(CP) '$<' '$@'
+endif
 
 # Set this to the comma-separated list of years that should appear in
 # the licence.  Do not use characters other than [0-9,] - no spaces.
