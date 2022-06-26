@@ -88,7 +88,7 @@ ddslib_rof += $(call riscos_lib,$(libraries))
 
 include binodeps.mk
 
-all:: installed-libraries
+all:: installed-libraries VERSION
 
 install:: install-headers install-libraries
 
