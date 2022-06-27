@@ -77,7 +77,7 @@ extern "C" {
 #define dllist_loopinsertafter(M,P,E) dllist_looplink(M,P,(P)->M.next,E)
 #define dllist_loopinsertbefore(M,N,E) dllist_looplink(M,(N)->M.prev,N,E)
 
-#define dllist_loopunlinkdir(H,M,E,D)
+#define dllist_loopunlinkdir(H,M,E,D)                                 \
   ((H)->entry == (E) ?                                                \
    (H)->entry = ((E)->M.D == (E) ? 0 : (E)->M.D) :                    \
    ((E)->M.prev->M.next=(E)->M.next, (E)->M.next->M.prev=(E)->M.prev))
