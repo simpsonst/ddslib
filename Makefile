@@ -9,9 +9,7 @@ GETVERSION=git describe
 ENABLE_CXX=yes
 ENABLE_C99=yes
 
-## INSTALL_PATH is deprecated.
-INSTALL_PATH=/usr/local
-PREFIX=$(INSTALL_PATH)
+PREFIX=/usr/local
 
 VERSION:=$(shell $(GETVERSION) 2> /dev/null)
 
