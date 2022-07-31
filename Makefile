@@ -11,7 +11,9 @@ ENABLE_C99=yes
 
 PREFIX=/usr/local
 
-VERSION:=$(shell $(GETVERSION) 2> /dev/null)
+VWORDS:=$(shell src/getversion.sh --prefix=v MAJOR MINOR PATCH)
+VERSION:=$(word 1,$(VWORDS))
+BUILD:=$(word 2,$(VWORDS))
 
 ## Provide a version of $(abspath) that can cope with spaces in the
 ## current directory.
@@ -84,9 +86,11 @@ ddslib_rof += $(call riscos_hdr,$(headers))
 ddslib_rof += $(call riscos_src,$(SOURCES))
 ddslib_rof += $(call riscos_lib,$(libraries))
 
+ddslib_sover=$(VERSION)
+
 include binodeps.mk
 
-all:: installed-libraries VERSION
+all:: installed-libraries VERSION BUILD
 
 install:: install-headers install-libraries
 
@@ -107,15 +111,20 @@ $(BINODEPS_OUTDIR)/riscos/!DDSLib/VERSION,fff: VERSION
 	$(MKDIR) "$(@D)"
 	$(CP) "$<" "$@"
 
-ifneq ($(VERSION),)
-prepare-version::
+MYCMPCP=$(CMP) -s '$1' '$2' || $(CP) '$1' '$2'
+.PHONY: prepare-version
+prepare-version:
 	@$(MKDIR) tmp/
-	@$(ECHO) $(VERSION) > tmp/VERSION
-
-tmp/VERSION: | prepare-version
-VERSION: tmp/VERSION
-	@$(CMP) -s '$<' '$@' || $(CP) '$<' '$@'
+ifneq ($(BUILD),)
+	$(file >tmp/BUILD,$(BUILD))
 endif
+ifneq ($(VERSION),)
+	$(file >tmp/VERSION,$(VERSION))
+endif
+BUILD: prepare-version
+	@$(call MYCMPCP,tmp/BUILD,$@)
+VERSION: prepare-version
+	@$(call MYCMPCP,tmp/VERSION,$@)
 
 # Set this to the comma-separated list of years that should appear in
 # the licence.  Do not use characters other than [0-9,] - no spaces.
@@ -128,3 +137,6 @@ update-licence:
 
 tidy::
 	@$(FIND) . -name "*~" -delete
+
+distclean: blank
+	$(RM) VERSION BUILD
